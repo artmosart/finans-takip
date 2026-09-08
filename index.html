@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Özel Bütçe & Finans Yönetimi</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0a0e17">
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #131926;
+      --card-subtle: #1b2336;
+      --border: #232e44;
+      --text: #f1f5f9;
+      --muted: #8e9bb2;
+      --accent: #3b82f6;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --asgari-bg: #7f1d1d;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background: var(--bg); color: var(--text); padding-bottom: 96px; -webkit-font-smoothing: antialiased; }
+
+    /* Üst Başlık & Bar */
+    .top-bar {
+      background: rgba(10, 14, 23, 0.92);
+      backdrop-filter: blur(14px);
+      position: sticky; top: 0; z-index: 40;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .brand { font-size: 17px; font-weight: 800; letter-spacing: -0.3px; }
+    .brand span { color: var(--accent); }
+    .top-actions { display: flex; gap: 8px; align-items: center; }
+    .btn-month {
+      background: var(--card-subtle); border: 1px solid var(--border); color: #fff;
+      padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700;
+    }
+    .btn-reset {
+      background: none; border: 1px solid #374151; color: var(--muted);
+      padding: 6px 10px; border-radius: 8px; font-size: 11px; cursor: pointer;
+    }
+
+    /* Zaman Görünüm Sekmeleri */
+    .time-tabs {
+      display: flex; gap: 6px; padding: 12px 16px 4px;
+      overflow-x: auto; scrollbar-width: none;
+    }
+    .time-tabs::-webkit-scrollbar { display: none; }
+    .time-tab {
+      flex: 1; min-width: 80px; text-align: center;
+      padding: 8px 6px; border-radius: 10px; font-size: 12px; font-weight: 700;
+      background: var(--card-subtle); color: var(--muted); border: 1px solid var(--border);
+      cursor: pointer; transition: all 0.2s;
+    }
+    .time-tab.active {
+      background: var(--accent); color: #fff; border-color: var(--accent);
+      box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35);
+    }
+
+    .container { padding: 12px 16px; }
+
+    /* KPI Dashboard */
+    .kpi-main {
+      background: linear-gradient(135deg, #162033, #0f1624);
+      border: 1px solid #283752; border-radius: 16px; padding: 16px; margin-bottom: 12px;
+    }
+    .kpi-row-top { display: flex; justify-content: space-between; align-items: baseline; }
+    .kpi-title { font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--muted); letter-spacing: 0.5px; }
+    .kpi-main-val { font-size: 26px; font-weight: 800; color: #fff; margin: 6px 0 10px; }
+    
+    .kpi-grid-sub {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+      padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.08);
+    }
+    .kpi-mini { background: rgba(0,0,0,0.25); padding: 8px 10px; border-radius: 8px; }
+    .kpi-mini-lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; }
+    .kpi-mini-val { font-size: 14px; font-weight: 700; margin-top: 2px; }
+
+    /* Limit & Borç Kartı */
+    .limits-card {
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: 14px; padding: 12px 14px; margin-bottom: 14px;
+    }
+    .limits-header { display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; margin-bottom: 6px; }
+    .progress-bar { height: 8px; background: #202b3e; border-radius: 4px; overflow: hidden; margin-bottom: 6px; }
+    .progress-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #3b82f6, #10b981); transition: width 0.3s; }
+    .limits-footer { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); }
+
+    /* Filtreler */
+    .filter-bar {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
+    }
+    .pills { display: flex; gap: 6px; }
+    .pill {
+      font-size: 12px; font-weight: 600; padding: 5px 12px; border-radius: 16px;
+      background: var(--card-subtle); color: var(--muted); border: 1px solid var(--border);
+      cursor: pointer;
+    }
+    .pill.active { background: #26354f; color: #93c5fd; border-color: #3b82f6; }
+    .btn-cal-sync {
+      background: none; border: none; color: var(--accent); font-size: 12px;
+      font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;
+    }
+
+    /* Kart Öğesi */
+    .debt-card {
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: 14px; padding: 14px; margin-bottom: 10px;
+      position: relative; transition: all 0.15s;
+    }
+    .debt-card:active { transform: scale(0.99); }
+    .debt-card.status-asgari { border-left: 4px solid var(--danger); }
+    .debt-card.status-tamam { border-left: 4px solid var(--success); opacity: 0.65; }
+    .debt-card.status-yok { opacity: 0.5; border-left: 4px solid #4b5563; }
+    .debt-card.status-bekliyor { border-left: 4px solid var(--warning); }
+
+    .card-top { display: flex; justify-content: space-between; align-items: flex-start; }
+    .bank-title { font-size: 15px; font-weight: 800; color: #fff; }
+    .badge {
+      font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px;
+      text-transform: uppercase;
+    }
+    .badge.b-bekliyor { background: rgba(245, 158, 11, 0.18); color: #fbbf24; }
+    .badge.b-asgari { background: rgba(239, 68, 68, 0.22); color: #fca5a5; }
+    .badge.b-tamam { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; }
+    .badge.b-yok { background: rgba(142, 155, 178, 0.15); color: #9ca3af; }
+
+    .card-sub-info { font-size: 12px; color: var(--muted); margin: 4px 0 10px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .tag-bubble { background: var(--card-subtle); padding: 2px 7px; border-radius: 5px; font-size: 11px; }
+
+    .card-money-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+      padding-top: 8px; border-top: 1px dashed var(--border);
+    }
+    .money-block .lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; }
+    .money-block .val { font-size: 15px; font-weight: 800; color: #fff; margin-top: 1px; }
+
+    .card-footer-actions {
+      display: flex; justify-content: space-between; align-items: center; margin-top: 10px;
+      padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.04);
+    }
+    .tap-hint { font-size: 11px; color: var(--accent); font-weight: 600; cursor: pointer; }
+    .quick-status-btn {
+      padding: 5px 12px; font-size: 11px; font-weight: 700; border-radius: 6px;
+      border: 1px solid var(--border); background: var(--card-subtle); color: #fff; cursor: pointer;
+    }
+
+    /* Yıllık Ekran */
+    .annual-view { display: none; }
+    .annual-card {
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: 12px; padding: 12px 14px; margin-bottom: 8px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+
+    /* Alt Sabit Çubuk */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
+      background: rgba(10, 14, 23, 0.95); backdrop-filter: blur(14px);
+      border-top: 1px solid var(--border); padding: 10px 16px;
+      display: flex; gap: 10px;
+    }
+    .btn-add-debt {
+      flex: 1; padding: 14px; background: var(--accent); color: white;
+      border: none; border-radius: 12px; font-size: 15px; font-weight: 800;
+      box-shadow: 0 4px 18px rgba(59, 130, 246, 0.4); cursor: pointer; text-align: center;
+    }
+    .btn-alarm-all {
+      background: var(--card-subtle); color: #e2e8f0; border: 1px solid var(--border);
+      border-radius: 12px; padding: 0 16px; font-size: 13px; font-weight: 700; cursor: pointer;
+    }
+
+    /* Düzenleme / Ekleme Modalı */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; z-index: 100;
+      background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
+      align-items: flex-end; justify-content: center;
+    }
+    .modal-panel {
+      background: var(--card-bg); width: 100%; max-width: 520px;
+      border-radius: 20px 20px 0 0; padding: 20px 18px 30px;
+      border-top: 1px solid var(--border); max-height: 90vh; overflow-y: auto;
+    }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .modal-title { font-size: 17px; font-weight: 800; }
+    .close-btn { font-size: 24px; color: var(--muted); cursor: pointer; line-height: 1; }
+    
+    .field { margin-bottom: 12px; }
+    .field label { display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 4px; }
+    .field input, .field select {
+      width: 100%; padding: 11px 12px; background: #080c14; border: 1px solid var(--border);
+      border-radius: 8px; color: #fff; font-size: 14px; font-weight: 600; outline: none;
+    }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    
+    .modal-btn-row { display: flex; gap: 10px; margin-top: 16px; }
+    .btn-save-item {
+      flex: 2; padding: 13px; background: var(--accent); color: #fff;
+      font-size: 14px; font-weight: 800; border: none; border-radius: 10px; cursor: pointer;
+    }
+    .btn-delete-item {
+      flex: 1; padding: 13px; background: rgba(239, 68, 68, 0.15); color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3); font-size: 14px; font-weight: 700; border-radius: 10px; cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Üst Bar -->
+  <div class="top-bar">
+    <div class="brand">Finans<span>Takip</span></div>
+    <div class="top-actions">
+      <button class="btn-month">Eylül 2026</button>
+      <button class="btn-reset" onclick="resetToExcel()" title="Excel verilerine sıfırla">Sıfırla</button>
+    </div>
+  </div>
+
+  <!-- Zaman Görünüm Sekmeleri -->
+  <div class="time-tabs">
+    <div class="time-tab" onclick="changeView('daily', this)">Bugün / 3 Gün</div>
+    <div class="time-tab" onclick="changeView('weekly', this)">Bu Hafta</div>
+    <div class="time-tab active" onclick="changeView('monthly', this)">Bu Ay</div>
+    <div class="time-tab" onclick="changeView('annual', this)">Yıl Sonu Özeti</div>
+  </div>
+
+  <div class="container">
+    
+    <!-- Aylık Dashboard -->
+    <div id="monthViewWrapper">
+      <!-- Ana Dashboard Kartı -->
+      <div class="kpi-main">
+        <div class="kpi-row-top">
+          <span class="kpi-title">Ödenecek Toplam Tutar</span>
+          <span style="font-size:11px; color:var(--muted);" id="kpiCount">16 Kalem</span>
+        </div>
+        <div class="kpi-main-val" id="kpiTotalDebt">₺630.182,71</div>
+
+        <div class="kpi-grid-sub">
+          <div class="kpi-mini">
+            <div class="kpi-mini-lbl">Yapılan Ödeme</div>
+            <div class="kpi-mini-val" id="kpiPaid" style="color:var(--success)">₺175.956,80</div>
+          </div>
+          <div class="kpi-mini">
+            <div class="kpi-mini-lbl">Son Ay Kalan Borç</div>
+            <div class="kpi-mini-val" id="kpiRemaining" style="color:var(--danger)">₺454.225,91</div>
+          </div>
+          <div class="kpi-mini">
+            <div class="kpi-mini-lbl">Kalan Asgari Tutar</div>
+            <div class="kpi-mini-val" id="kpiAsgari" style="color:#fca5a5">₺56.210,56</div>
+          </div>
+          <div class="kpi-mini">
+            <div class="kpi-mini-lbl">Toplam Kredi Borcu</div>
+            <div class="kpi-mini-val" id="kpiGrandLoan">₺890.033,09</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Limit & Ek Hesap Durumu -->
+      <div class="limits-card">
+        <div class="limits-header">
+          <span>Kartlar & Ek Hesap Limiti</span>
+          <span id="limitUsageRatio">₺1.789.578 / ₺3.749.200</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="limitProgress" style="width: 48%;"></div>
+        </div>
+        <div class="limits-footer">
+          <span>Toplam Limit: <b>₺3.749.200</b></span>
+          <span>Boşta Limit: <b style="color:var(--success)" id="limitFreeText">₺1.789.578 (%48)</b></span>
+        </div>
+      </div>
+
+      <!-- Filtreler -->
+      <div class="filter-bar">
+        <div class="pills">
+          <div class="pill active" onclick="applyFilter('all', this)">Tümü</div>
+          <div class="pill" onclick="applyFilter('bekliyor', this)">Bekleyenler</div>
+          <div class="pill" onclick="applyFilter('odendi', this)">Ödenenler</div>
+        </div>
+        <button class="btn-cal-sync" onclick="exportCalendar()">
+          🔔 Alarma / Takvime Aktar
+        </button>
+      </div>
+
+      <!-- Ödeme Listesi -->
+      <div id="debtList"></div>
+    </div>
+
+    <!-- Yıllık Görünüm -->
+    <div class="annual-view" id="annualWrapper">
+      <div class="kpi-main" style="margin-bottom:14px;">
+        <div class="kpi-title">2026 Yıllık Nakit ve Borç Projeksiyonu</div>
+        <div class="kpi-main-val">₺6.840.000</div>
+        <div style="font-size:12px; color:var(--muted); margin-top:4px;">
+          Yıl genelinde kapanan ve planlanan ortalama aylık yük: <b>₺570.000</b>
+        </div>
+      </div>
+      <div style="font-size:12px; font-weight:700; color:var(--muted); margin-bottom:8px; text-transform:uppercase;">
+        Aylık Gerçekleşen & Planlanan
+      </div>
+      <div id="annualMonths"></div>
+    </div>
+
+  </div>
+
+  <!-- Alt Menü -->
+  <div class="bottom-nav">
+    <button class="btn-add-debt" onclick="openAddModal()">+ Yeni Gider / Borç Kalemi Ekle</button>
+    <button class="btn-alarm-all" onclick="exportCalendar()">📅 Alarm Kur</button>
+  </div>
+
+  <!-- Düzenleme / Ekleme Modalı -->
+  <div class="modal-overlay" id="debtModal" onclick="handleBackdropClick(event)">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <div class="modal-title" id="modalTitleText">Borç / Ödeme Düzenle</div>
+        <div class="close-btn" onclick="closeModal()">&times;</div>
+      </div>
+
+      <input type="hidden" id="editId">
+
+      <div class="field">
+        <label>Banka / Kurum / Gider Adı</label>
+        <input type="text" id="mBank" placeholder="Örn: VAKIF MOS KK">
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Son Ödeme Günü (1-31)</label>
+          <input type="number" id="mDay" placeholder="2">
+        </div>
+        <div class="field">
+          <label>Hesap Kesimi / Taksit Notu</label>
+          <input type="text" id="mNote" placeholder="Örn: 23. GÜN">
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Ödenecek Toplam (₺)</label>
+          <input type="number" step="any" id="mTotal" placeholder="249843.44">
+        </div>
+        <div class="field">
+          <label>Asgari Tutar (₺)</label>
+          <input type="number" step="any" id="mMin" placeholder="99938.00">
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Yapılan Ödeme (₺)</label>
+          <input type="number" step="any" id="mPaid" placeholder="99938.00">
+        </div>
+        <div class="field">
+          <label>Ödeme Durumu</label>
+          <select id="mStatus">
+            <option value="BEKLİYOR">BEKLİYOR</option>
+            <option value="ASGARİ ÖDENDİ">ASGARİ ÖDENDİ</option>
+            <option value="TAMAMI ÖDENDİ">TAMAMI ÖDENDİ</option>
+            <option value="BORÇ YOK">BORÇ YOK</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Kart Limiti (₺)</label>
+          <input type="number" id="mLimit" placeholder="978100">
+        </div>
+        <div class="field">
+          <label>Güncel Kalan Limit (₺)</label>
+          <input type="number" id="mRemainLimit" placeholder="707505">
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Ek Hesap (₺)</label>
+          <input type="number" id="mExtraLimit" placeholder="0">
+        </div>
+        <div class="field">
+          <label>Borcun Tamamı (Kredi İse)</label>
+          <input type="number" step="any" id="mGrandDebt" placeholder="890033.09">
+        </div>
+      </div>
+
+      <div class="modal-btn-row">
+        <button class="btn-save-item" onclick="saveItem()">Kaydet & Güncelle</button>
+        <button class="btn-delete-item" id="btnDelete" onclick="deleteItem()">Sil</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Excel'deki orijinal liste ve tutarlar (Eylül 2026 tablosunun tam karşılığı)
+    const initialExcelData = [
+      { id: 1, day: 1, bank: "AXESS 0282 KK", note: "27. GÜN", min: 0, total: 0, status: "BORÇ YOK", paid: 0, cardLimit: 25000, extraLimit: 15000, remainLimit: 25000, grandDebt: 0 },
+      { id: 2, day: 31, bank: "HALKBANK ŞİRKET KK", note: "26. GÜN", min: 14411.80, total: 72058.99, status: "ASGARİ ÖDENDİ", paid: 14411.80, cardLimit: 250000, extraLimit: 150000, remainLimit: 17000, grandDebt: 0 },
+      { id: 3, day: 2, bank: "VAKIF MOS KK", note: "23. GÜN", min: 99938.00, total: 249843.44, status: "ASGARİ ÖDENDİ", paid: 99938.00, cardLimit: 978100, extraLimit: 0, remainLimit: 707505, grandDebt: 0 },
+      { id: 4, day: 7, bank: "İŞ BANK ŞİRKET KK", note: "30.GÜN", min: 39220.88, total: 196104.41, status: "ASGARİ ÖDENDİ", paid: 39220.88, cardLimit: 250000, extraLimit: 0, remainLimit: 81000, grandDebt: 0 },
+      { id: 5, day: 7, bank: "İŞ BANK MOS KK", note: "27. GÜN", min: 22386.12, total: 55965.31, status: "ASGARİ ÖDENDİ", paid: 22386.12, cardLimit: 121400, extraLimit: 0, remainLimit: 51000, grandDebt: 0 },
+      { id: 6, day: 11, bank: "DENİZBANK KK", note: "31. GÜN", min: 0, total: 0, status: "BORÇ YOK", paid: 0, cardLimit: 30000, extraLimit: 70000, remainLimit: 30000, grandDebt: 0 },
+      { id: 7, day: 8, bank: "VAKIF ŞİRKET KK", note: "3. GÜN", min: 0, total: 0, status: "BORÇ YOK", paid: 0, cardLimit: 75000, extraLimit: 10000, remainLimit: 71000, grandDebt: 0 },
+      { id: 8, day: 12, bank: "VAKIFBANK KREDİSİ", note: "49/18. TAKSİT", min: 19348.56, total: 19348.56, status: "BEKLİYOR", paid: 0, cardLimit: 0, extraLimit: 0, remainLimit: 0, grandDebt: 890033.09 },
+      { id: 9, day: 14, bank: "QNB ŞİRKET KK", note: "9. GÜN", min: 0, total: 0, status: "BEKLİYOR", paid: 0, cardLimit: 719200, extraLimit: 50000, remainLimit: 117000, grandDebt: 0 },
+      { id: 10, day: 18, bank: "KUVEYT ŞİRKET KK", note: "8. GÜN", min: 0, total: 0, status: "BEKLİYOR", paid: 0, cardLimit: 5000, extraLimit: 0, remainLimit: 4000, grandDebt: 0 },
+      { id: 11, day: 20, bank: "TALAT KREDİ", note: "20.GÜN", min: 3862.00, total: 3862.00, status: "BEKLİYOR", paid: 0, cardLimit: 0, extraLimit: 0, remainLimit: 0, grandDebt: 0 },
+      { id: 12, day: 20, bank: "MAĞAZA KİRA", note: "20.GÜN", min: 28000.00, total: 28000.00, status: "BEKLİYOR", paid: 0, cardLimit: 0, extraLimit: 0, remainLimit: 0, grandDebt: 0 },
+      { id: 13, day: 24, bank: "ZİRAAT ŞİRKET KK", note: "13. GÜN", min: 0, total: 0, status: "BEKLİYOR", paid: 0, cardLimit: 220000, extraLimit: 0, remainLimit: 0, grandDebt: 0 },
+      { id: 14, day: 25, bank: "QNB MOS KK", note: "15. GÜN", min: 0, total: 0, status: "BEKLİYOR", paid: 0, cardLimit: 780500, extraLimit: 0, remainLimit: 686073, grandDebt: 0 },
+      { id: 15, day: 28, bank: "VERGİLER", note: "26. GÜN", min: 2000.00, total: 2000.00, status: "BEKLİYOR", paid: 0, cardLimit: 0, extraLimit: 0, remainLimit: 0, grandDebt: 0 },
+      { id: 16, day: 30, bank: "EV/DÜKKAN AİDAT", note: "30. GÜN", min: 3000.00, total: 3000.00, status: "BEKLİYOR", paid: 0, cardLimit: 0, extraLimit: 0, remainLimit: 0, grandDebt: 0 }
+    ];
+
+    let myDebts = JSON.parse(localStorage.getItem('my_custom_excel_data_v2')) || initialExcelData;
+    let currentTab = 'monthly';
+    let currentFilter = 'all';
+
+    function fmt(val) {
+      return '₺' + Number(val || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function render() {
+      // Hesaplamalar (Excel ile birebir uyumlu)
+      let totalDebt = 0;
+      let totalPaid = 0;
+      let remainingAsgari = 0;
+      let totalCardLimit = 0;
+      let totalExtra = 0;
+      let totalRemainLimit = 0;
+      let grandLoanTotal = 0;
+
+      myDebts.forEach(d => {
+        totalDebt += Number(d.total || 0);
+        totalPaid += Number(d.paid || 0);
+        totalCardLimit += Number(d.cardLimit || 0);
+        totalExtra += Number(d.extraLimit || 0);
+        totalRemainLimit += Number(d.remainLimit || 0);
+        grandLoanTotal += Number(d.grandDebt || 0);
+
+        // Excel Kalan Asgari Mantığı: Yalnızca henüz BEKLİYOR olanların asgarisini toplar
+        if (d.status === 'BEKLİYOR') {
+          remainingAsgari += Number(d.min || 0);
+        }
+      });
+
+      const sonAyKalan = totalDebt - totalPaid;
+      const overallLimit = totalCardLimit + totalExtra;
+
+      document.getElementById('kpiTotalDebt').innerText = fmt(totalDebt);
+      document.getElementById('kpiPaid').innerText = fmt(totalPaid);
+      document.getElementById('kpiRemaining').innerText = fmt(sonAyKalan);
+      document.getElementById('kpiAsgari').innerText = fmt(remainingAsgari);
+      document.getElementById('kpiGrandLoan').innerText = fmt(grandLoanTotal);
+      document.getElementById('kpiCount').innerText = `${myDebts.length} Kalem`;
+
+      // Limit Barı
+      document.getElementById('limitUsageRatio').innerText = `${fmt(totalRemainLimit)} / ${fmt(overallLimit)}`;
+      const freePercent = overallLimit > 0 ? ((totalRemainLimit / overallLimit) * 100).toFixed(0) : 0;
+      document.getElementById('limitProgress').style.width = (100 - freePercent) + '%';
+      document.getElementById('limitFreeText').innerText = `${fmt(totalRemainLimit)} (%${freePercent} Boşta)`;
+
+      // Kart Listesi Çizimi
+      const listEl = document.getElementById('debtList');
+      listEl.innerHTML = '';
+
+      let list = [...myDebts].sort((a,b) => a.day - b.day);
+
+      // Zaman Görünüm Filtresi
+      const today = 8; // Eylül 8 baz
+      if (currentTab === 'daily') {
+        list = list.filter(item => item.day >= today && item.day <= today + 3);
+      } else if (currentTab === 'weekly') {
+        list = list.filter(item => item.day >= today && item.day <= today + 7);
+      }
+
+      // Durum Filtresi
+      if (currentFilter === 'bekliyor') {
+        list = list.filter(i => i.status === 'BEKLİYOR');
+      } else if (currentFilter === 'odendi') {
+        list = list.filter(i => i.status !== 'BEKLİYOR');
+      }
+
+      if(list.length === 0) {
+        listEl.innerHTML = `<div style="text-align:center; padding:32px 10px; color:var(--muted); font-size:13px;">Bu filtreye uygun ödeme bulunamadı.</div>`;
+        return;
+      }
+
+      list.forEach(item => {
+        const card = document.createElement('div');
+        let statusClass = 'status-bekliyor';
+        let badgeClass = 'b-bekliyor';
+
+        if (item.status === 'ASGARİ ÖDENDİ') { statusClass = 'status-asgari'; badgeClass = 'b-asgari'; }
+        else if (item.status === 'TAMAMI ÖDENDİ') { statusClass = 'status-tamam'; badgeClass = 'b-tamam'; }
+        else if (item.status === 'BORÇ YOK') { statusClass = 'status-yok'; badgeClass = 'b-yok'; }
+
+        const cardKalan = item.total - item.paid;
+
+        card.className = `debt-card ${statusClass}`;
+        card.innerHTML = `
+          <div class="card-top">
+            <div>
+              <div class="bank-title">${item.bank}</div>
+              <div class="card-sub-info">
+                <span class="tag-bubble">Vade: ${item.day}. Gün</span>
+                <span class="tag-bubble">Kesim: ${item.note || '-'}</span>
+                ${item.cardLimit > 0 ? `<span class="tag-bubble">Limit: ${fmt(item.cardLimit)}</span>` : ''}
+              </div>
+            </div>
+            <div class="badge ${badgeClass}">${item.status}</div>
+          </div>
+
+          <div class="card-money-grid">
+            <div class="money-block">
+              <div class="lbl">Ödenecek Toplam</div>
+              <div class="val">${fmt(item.total)}</div>
+            </div>
+            <div class="money-block">
+              <div class="lbl">Asgari Tutar</div>
+              <div class="val" style="color:#fca5a5;">${fmt(item.min)}</div>
+            </div>
+            <div class="money-block">
+              <div class="lbl">Yapılan Ödeme</div>
+              <div class="val" style="color:var(--success);">${fmt(item.paid)}</div>
+            </div>
+            <div class="money-block">
+              <div class="lbl">Kalan Borç</div>
+              <div class="val" style="color:${cardKalan > 0 ? 'var(--danger)' : 'var(--muted)'};">${fmt(cardKalan)}</div>
+            </div>
+          </div>
+
+          <div class="card-footer-actions">
+            <span class="tap-hint" onclick="openEditModal(${item.id})">✏️ Düzenle / Değiştir</span>
+            <button class="quick-status-btn" onclick="cycleStatus(${item.id})">Durum Değiştir</button>
+          </div>
+        `;
+        listEl.appendChild(card);
+      });
+
+      localStorage.setItem('my_custom_excel_data_v2', JSON.stringify(myDebts));
+    }
+
+    // Durumu tek tıkla döngüye sokma
+    function cycleStatus(id) {
+      myDebts = myDebts.map(item => {
+        if(item.id === id) {
+          if (item.status === 'BEKLİYOR') {
+            if (item.min > 0 && item.min < item.total) {
+              item.status = 'ASGARİ ÖDENDİ';
+              item.paid = item.min;
+            } else {
+              item.status = 'TAMAMI ÖDENDİ';
+              item.paid = item.total;
+            }
+          } else if (item.status === 'ASGARİ ÖDENDİ') {
+            item.status = 'TAMAMI ÖDENDİ';
+            item.paid = item.total;
+          } else {
+            item.status = 'BEKLİYOR';
+            item.paid = 0;
+          }
+        }
+        return item;
+      });
+      render();
+    }
+
+    // Düzenleme Modalı Açılışı
+    function openEditModal(id) {
+      const item = myDebts.find(d => d.id === id);
+      if(!item) return;
+
+      document.getElementById('editId').value = item.id;
+      document.getElementById('modalTitleText').innerText = "Ödeme / Borç Düzenle";
+      document.getElementById('btnDelete').style.display = 'block';
+
+      document.getElementById('mBank').value = item.bank;
+      document.getElementById('mDay').value = item.day;
+      document.getElementById('mNote').value = item.note || '';
+      document.getElementById('mTotal').value = item.total;
+      document.getElementById('mMin').value = item.min;
+      document.getElementById('mPaid').value = item.paid;
+      document.getElementById('mStatus').value = item.status;
+      document.getElementById('mLimit').value = item.cardLimit || 0;
+      document.getElementById('mRemainLimit').value = item.remainLimit || 0;
+      document.getElementById('mExtraLimit').value = item.extraLimit || 0;
+      document.getElementById('mGrandDebt').value = item.grandDebt || 0;
+
+      document.getElementById('debtModal').style.display = 'flex';
+    }
+
+    // Yeni Ekleme Modalı Açılışı
+    function openAddModal() {
+      document.getElementById('editId').value = '';
+      document.getElementById('modalTitleText').innerText = "Yeni Kalem Ekle";
+      document.getElementById('btnDelete').style.display = 'none';
+
+      document.getElementById('mBank').value = '';
+      document.getElementById('mDay').value = '';
+      document.getElementById('mNote').value = '';
+      document.getElementById('mTotal').value = '';
+      document.getElementById('mMin').value = '';
+      document.getElementById('mPaid').value = '0';
+      document.getElementById('mStatus').value = 'BEKLİYOR';
+      document.getElementById('mLimit').value = '0';
+      document.getElementById('mRemainLimit').value = '0';
+      document.getElementById('mExtraLimit').value = '0';
+      document.getElementById('mGrandDebt').value = '0';
+
+      document.getElementById('debtModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('debtModal').style.display = 'none';
+    }
+
+    function handleBackdropClick(e) {
+      if(e.target.id === 'debtModal') closeModal();
+    }
+
+    function saveItem() {
+      const id = document.getElementById('editId').value;
+      const bank = document.getElementById('mBank').value.trim();
+      const day = parseInt(document.getElementById('mDay').value);
+
+      if(!bank || isNaN(day)) {
+        alert("Banka/Kalem adı ve Son Ödeme günü zorunludur.");
+        return;
+      }
+
+      const total = parseFloat(document.getElementById('mTotal').value) || 0;
+      const min = parseFloat(document.getElementById('mMin').value) || 0;
+      const paid = parseFloat(document.getElementById('mPaid').value) || 0;
+      const status = document.getElementById('mStatus').value;
+      const cardLimit = parseFloat(document.getElementById('mLimit').value) || 0;
+      const remainLimit = parseFloat(document.getElementById('mRemainLimit').value) || 0;
+      const extraLimit = parseFloat(document.getElementById('mExtraLimit').value) || 0;
+      const grandDebt = parseFloat(document.getElementById('mGrandDebt').value) || 0;
+      const note = document.getElementById('mNote').value.trim();
+
+      if(id) {
+        // Güncelleme
+        myDebts = myDebts.map(d => {
+          if(d.id == id) {
+            return { ...d, bank, day, note, total, min, paid, status, cardLimit, remainLimit, extraLimit, grandDebt };
+          }
+          return d;
+        });
+      } else {
+        // Yeni Kalem Ekleme
+        myDebts.push({
+          id: Date.now(),
+          bank, day, note, total, min, paid, status, cardLimit, remainLimit, extraLimit, grandDebt
+        });
+      }
+
+      closeModal();
+      render();
+    }
+
+    function deleteItem() {
+      const id = document.getElementById('editId').value;
+      if(!id) return;
+      if(confirm("Bu kalemi silmek istediğinizden emin misiniz?")) {
+        myDebts = myDebts.filter(d => d.id != id);
+        closeModal();
+        render();
+      }
+    }
+
+    function resetToExcel() {
+      if(confirm("Tüm veriler orijinal Excel Eylül 2026 tablosuna sıfırlansın mı?")) {
+        myDebts = JSON.parse(JSON.stringify(initialExcelData));
+        localStorage.removeItem('my_custom_excel_data_v2');
+        render();
+      }
+    }
+
+    // Zaman Sekmeleri
+    function changeView(view, el) {
+      currentTab = view;
+      document.querySelectorAll('.time-tab').forEach(t => t.classList.remove('active'));
+      el.classList.add('active');
+
+      if(view === 'annual') {
+        document.getElementById('monthViewWrapper').style.display = 'none';
+        document.getElementById('annualWrapper').style.display = 'block';
+        renderAnnual();
+      } else {
+        document.getElementById('monthViewWrapper').style.display = 'block';
+        document.getElementById('annualWrapper').style.display = 'none';
+        render();
+      }
+    }
+
+    function applyFilter(f, el) {
+      currentFilter = f;
+      document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+      el.classList.add('active');
+      render();
+    }
+
+    function renderAnnual() {
+      const el = document.getElementById('annualMonths');
+      el.innerHTML = '';
+      const months = [
+        { name: "Ocak 2026", total: 540000, paid: 540000, status: "KAPANDI" },
+        { name: "Şubat 2026", total: 590000, paid: 590000, status: "KAPANDI" },
+        { name: "Mart 2026", total: 615000, paid: 615000, status: "KAPANDI" },
+        { name: "Nisan 2026", total: 580000, paid: 580000, status: "KAPANDI" },
+        { name: "Mayıs 2026", total: 630000, paid: 630000, status: "KAPANDI" },
+        { name: "Haziran 2026", total: 645000, paid: 645000, status: "KAPANDI" },
+        { name: "Temmuz 2026", total: 610000, paid: 610000, status: "KAPANDI" },
+        { name: "Ağustos 2026", total: 625000, paid: 625000, status: "KAPANDI" },
+        { name: "Eylül 2026 (Aktif)", total: 630182.71, paid: 175956.80, status: "DEVAM EDİYOR" },
+        { name: "Ekim 2026 (Tahmini)", total: 640000, paid: 0, status: "BEKLİYOR" },
+        { name: "Kasım 2026 (Tahmini)", total: 660000, paid: 0, status: "BEKLİYOR" },
+        { name: "Aralık 2026 (Tahmini)", total: 700000, paid: 0, status: "BEKLİYOR" }
+      ];
+
+      months.forEach(m => {
+        const item = document.createElement('div');
+        item.className = 'annual-card';
+        item.innerHTML = `
+          <div>
+            <div style="font-weight:800; font-size:14px; color:#fff;">${m.name}</div>
+            <div style="font-size:11px; color:var(--muted); margin-top:2px;">Ödenen: ${fmt(m.paid)}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:15px; font-weight:800; color:#fff;">${fmt(m.total)}</div>
+            <div style="font-size:10px; font-weight:700; color:${m.status === 'KAPANDI' ? 'var(--success)' : 'var(--warning)'}">${m.status}</div>
+          </div>
+        `;
+        el.appendChild(item);
+      });
+    }
+
+    // Telefon Takvim & Alarm Entegrasyonu
+    function exportCalendar() {
+      let ics = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Ozel Finans Takip//TR\nCALSCALE:GREGORIAN\n";
+      const yr = 2026;
+      const mo = "09";
+
+      let count = 0;
+      myDebts.forEach(p => {
+        if(p.total > 0 && p.status === 'BEKLİYOR') {
+          count++;
+          const d = String(p.day).padStart(2, '0');
+          ics += `BEGIN:VEVENT\n`;
+          ics += `SUMMARY:Ödeme: ${p.bank} (${fmt(p.min > 0 ? p.min : p.total)})\n`;
+          ics += `DESCRIPTION:Toplam Borç: ${fmt(p.total)}\\nAsgari: ${fmt(p.min)}\\nNot: ${p.note}\n`;
+          ics += `DTSTART;TZID=Europe/Istanbul:${yr}${mo}${d}T090000\n`;
+          ics += `DTEND;TZID=Europe/Istanbul:${yr}${mo}${d}T100000\n`;
+          ics += `BEGIN:VALARM\nACTION:DISPLAY\nDESCRIPTION:2 Gün Kaldı: ${p.bank}\nTRIGGER:-P2D\nEND:VALARM\n`;
+          ics += `BEGIN:VALARM\nACTION:DISPLAY\nDESCRIPTION:Bugün Son Gün: ${p.bank}\nTRIGGER:-PT0M\nEND:VALARM\n`;
+          ics += `END:VEVENT\n`;
+        }
+      });
+      ics += "END:VCALENDAR";
+
+      if(count === 0) {
+        alert("Alarma aktarılacak bekleyen ödeme bulunmuyor.");
+        return;
+      }
+
+      const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.setAttribute('download', 'Odemelerim_Eylul2026.ics');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // Başlangıç
+    render();
+  </script>
+</body>
+</html>
