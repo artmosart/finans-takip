@@ -2,288 +2,315 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Özel Bütçe & Finans Yönetimi</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#0a0e17">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#090d16">
   <style>
+    /* Tema Değişkenleri: Varsayılan Karanlık */
     :root {
       --bg: #090d16;
       --card-bg: #131926;
       --card-subtle: #1b2336;
       --border: #232e44;
       --text: #f1f5f9;
+      --text-head: #ffffff;
       --muted: #8e9bb2;
       --accent: #3b82f6;
+      --accent-hover: #2563eb;
       --success: #10b981;
       --danger: #ef4444;
       --warning: #f59e0b;
+      --modal-overlay: rgba(0, 0, 0, 0.82);
+      --kpi-grad-start: #162033;
+      --kpi-grad-end: #0f1624;
+      --topbar-bg: rgba(10, 14, 23, 0.94);
     }
+
+    /* Aydınlık Tema (Light Mode) */
+    body.light-mode {
+      --bg: #f3f5f9;
+      --card-bg: #ffffff;
+      --card-subtle: #f1f5f9;
+      --border: #e2e8f0;
+      --text: #1e293b;
+      --text-head: #0f172a;
+      --muted: #64748b;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --success: #059669;
+      --danger: #dc2626;
+      --warning: #d97706;
+      --modal-overlay: rgba(15, 23, 42, 0.6);
+      --kpi-grad-start: #ffffff;
+      --kpi-grad-end: #f8fafc;
+      --topbar-bg: rgba(255, 255, 255, 0.94);
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
-    body { background: var(--bg); color: var(--text); padding-bottom: 96px; -webkit-font-smoothing: antialiased; }
+    html, body { width: 100%; max-width: 100vw; overflow-x: hidden; }
+    body { background: var(--bg); color: var(--text); padding-bottom: 96px; -webkit-font-smoothing: antialiased; transition: background-color 0.25s, color 0.25s; }
 
     /* Üst Başlık & Bar */
     .top-bar {
-      background: rgba(10, 14, 23, 0.92);
+      background: var(--topbar-bg);
       backdrop-filter: blur(14px);
       position: sticky; top: 0; z-index: 40;
-      padding: 14px 16px;
+      padding: 12px 14px;
       border-bottom: 1px solid var(--border);
-      display: flex; justify-content: space-between; align-items: center;
+      display: flex; justify-content: space-between; align-items: center; gap: 8px;
     }
-    .brand { font-size: 17px; font-weight: 800; letter-spacing: -0.3px; }
+    .brand { font-size: 16px; font-weight: 800; letter-spacing: -0.3px; color: var(--text-head); white-space: nowrap; }
     .brand span { color: var(--accent); }
-    .top-actions { display: flex; gap: 8px; align-items: center; }
+    .top-actions { display: flex; gap: 6px; align-items: center; }
+    
     .month-nav-box {
-      display: flex; align-items: center; gap: 4px;
+      display: flex; align-items: center; gap: 2px;
       background: var(--card-subtle); border: 1px solid var(--border);
-      border-radius: 8px; padding: 2px 6px;
+      border-radius: 8px; padding: 2px 4px;
     }
     .month-nav-btn {
-      background: none; border: none; color: var(--muted); font-size: 14px;
+      background: none; border: none; color: var(--muted); font-size: 13px;
       font-weight: 800; padding: 4px 6px; cursor: pointer;
     }
-    .cur-month-text { font-size: 12px; font-weight: 700; color: #fff; min-width: 78px; text-align: center; }
-    .btn-reset {
-      background: none; border: 1px solid #374151; color: var(--muted);
-      padding: 6px 9px; border-radius: 8px; font-size: 11px; cursor: pointer;
+    .cur-month-text { font-size: 11px; font-weight: 700; color: var(--text-head); min-width: 72px; text-align: center; white-space: nowrap; }
+    
+    .btn-icon {
+      background: var(--card-subtle); border: 1px solid var(--border); color: var(--muted);
+      width: 32px; height: 32px; border-radius: 8px; font-size: 14px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; transition: all 0.2s;
     }
 
-    /* Zaman Görünüm Sekmeleri */
+    /* Zaman Görünüm Sekmeleri - Tam Yatay Esneme ve Mobil Uyum */
     .time-tabs {
-      display: flex; gap: 6px; padding: 12px 16px 4px;
+      display: flex; gap: 5px; padding: 10px 12px 4px;
       overflow-x: auto; scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
     }
     .time-tabs::-webkit-scrollbar { display: none; }
     .time-tab {
-      flex: 1; min-width: 74px; text-align: center;
-      padding: 8px 4px; border-radius: 10px; font-size: 12px; font-weight: 700;
+      flex: 1; min-width: 66px; text-align: center;
+      padding: 7px 4px; border-radius: 8px; font-size: 11px; font-weight: 700;
       background: var(--card-subtle); color: var(--muted); border: 1px solid var(--border);
       cursor: pointer; transition: all 0.2s; white-space: nowrap;
     }
     .time-tab.active {
       background: var(--accent); color: #fff; border-color: var(--accent);
-      box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35);
+      box-shadow: 0 3px 10px rgba(59, 130, 246, 0.3);
     }
 
-    .container { padding: 12px 16px; }
+    .container { padding: 10px 12px; width: 100%; max-width: 100%; overflow: hidden; }
 
     /* KPI Dashboard */
     .kpi-main {
-      background: linear-gradient(135deg, #162033, #0f1624);
-      border: 1px solid #283752; border-radius: 16px; padding: 16px; margin-bottom: 12px;
+      background: linear-gradient(135deg, var(--kpi-grad-start), var(--kpi-grad-end));
+      border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-bottom: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.04);
     }
     .kpi-row-top { display: flex; justify-content: space-between; align-items: baseline; }
-    .kpi-title { font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--muted); letter-spacing: 0.5px; }
-    .kpi-main-val { font-size: 26px; font-weight: 800; color: #fff; margin: 6px 0 10px; }
+    .kpi-title { font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--muted); letter-spacing: 0.5px; }
+    .kpi-main-val { font-size: 24px; font-weight: 800; color: var(--text-head); margin: 4px 0 8px; }
     
     .kpi-grid-sub {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
-      padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.08);
+      display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+      padding-top: 10px; border-top: 1px solid var(--border);
     }
-    .kpi-mini { background: rgba(0,0,0,0.25); padding: 8px 10px; border-radius: 8px; }
-    .kpi-mini-lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; }
-    .kpi-mini-val { font-size: 14px; font-weight: 700; margin-top: 2px; }
+    .kpi-mini { background: var(--card-subtle); padding: 8px 10px; border-radius: 8px; }
+    .kpi-mini-lbl { font-size: 9px; color: var(--muted); text-transform: uppercase; font-weight: 700; }
+    .kpi-mini-val { font-size: 13px; font-weight: 800; margin-top: 2px; color: var(--text-head); }
 
     /* Limit & Borç Kartı */
     .limits-card {
       background: var(--card-bg); border: 1px solid var(--border);
-      border-radius: 14px; padding: 12px 14px; margin-bottom: 14px;
+      border-radius: 12px; padding: 12px; margin-bottom: 12px;
     }
-    .limits-header { display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; margin-bottom: 6px; }
-    .progress-bar { height: 8px; background: #202b3e; border-radius: 4px; overflow: hidden; margin-bottom: 6px; }
-    .progress-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #3b82f6, #10b981); transition: width 0.3s; }
-    .limits-footer { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); }
+    .limits-header { display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; margin-bottom: 6px; color: var(--text-head); }
+    .progress-bar { height: 7px; background: var(--card-subtle); border-radius: 4px; overflow: hidden; margin-bottom: 6px; border: 1px solid var(--border); }
+    .progress-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--accent), var(--success)); transition: width 0.3s; }
+    .limits-footer { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); }
 
     /* Filtreler */
     .filter-bar {
       display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
-      flex-wrap: wrap; gap: 8px;
+      gap: 6px;
     }
-    .pills { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+    .pills { display: flex; gap: 5px; overflow-x: auto; scrollbar-width: none; }
     .pills::-webkit-scrollbar { display: none; }
     .pill {
-      font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: 16px; white-space: nowrap;
+      font-size: 11px; font-weight: 700; padding: 5px 9px; border-radius: 16px; white-space: nowrap;
       background: var(--card-subtle); color: var(--muted); border: 1px solid var(--border);
       cursor: pointer;
     }
-    .pill.active { background: #26354f; color: #93c5fd; border-color: #3b82f6; }
+    .pill.active { background: var(--accent); color: #fff; border-color: var(--accent); }
     .btn-cal-sync {
-      background: none; border: none; color: var(--accent); font-size: 12px;
-      font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;
-    }
-
-    /* Renk Paleti Rozetleri */
-    .color-dot {
-      display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; vertical-align: middle;
+      background: none; border: none; color: var(--accent); font-size: 11px;
+      font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px; white-space: nowrap;
     }
 
     /* Liste Kart Öğesi */
     .debt-card {
       background: var(--card-bg); border: 1px solid var(--border);
-      border-radius: 14px; padding: 14px; margin-bottom: 10px;
+      border-radius: 12px; padding: 12px; margin-bottom: 8px;
       position: relative; transition: all 0.15s;
     }
     .debt-card:active { transform: scale(0.99); }
     .debt-card.is-paid-done { opacity: 0.55; }
 
-    .card-top { display: flex; justify-content: space-between; align-items: flex-start; }
+    .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
     .bank-title-box { display: flex; align-items: center; gap: 6px; }
-    .bank-title { font-size: 15px; font-weight: 800; color: #fff; }
-    .type-badge {
-      font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 6px; text-transform: uppercase;
-    }
-    .badge {
-      font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px;
-      text-transform: uppercase;
-    }
-    .badge.b-bekliyor { background: rgba(245, 158, 11, 0.18); color: #fbbf24; }
-    .badge.b-asgari { background: rgba(239, 68, 68, 0.22); color: #fca5a5; }
-    .badge.b-tamam { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; }
-    .badge.b-yok { background: rgba(142, 155, 178, 0.15); color: #9ca3af; }
+    .color-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; vertical-align: middle; flex-shrink: 0; }
+    .bank-title { font-size: 14px; font-weight: 800; color: var(--text-head); }
+    .type-badge { font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 5px; text-transform: uppercase; }
+    .badge { font-size: 10px; font-weight: 700; padding: 3px 7px; border-radius: 6px; text-transform: uppercase; white-space: nowrap; }
+    .badge.b-bekliyor { background: rgba(245, 158, 11, 0.16); color: var(--warning); }
+    .badge.b-asgari { background: rgba(239, 68, 68, 0.16); color: var(--danger); }
+    .badge.b-tamam { background: rgba(16, 185, 129, 0.16); color: var(--success); }
+    .badge.b-yok { background: rgba(142, 155, 178, 0.15); color: var(--muted); }
 
-    .card-sub-info { font-size: 12px; color: var(--muted); margin: 6px 0 10px; display: flex; gap: 6px; flex-wrap: wrap; }
-    .tag-bubble { background: var(--card-subtle); padding: 2px 7px; border-radius: 5px; font-size: 11px; }
+    .card-sub-info { font-size: 11px; color: var(--muted); margin: 6px 0 8px; display: flex; gap: 5px; flex-wrap: wrap; }
+    .tag-bubble { background: var(--card-subtle); padding: 2px 6px; border-radius: 4px; font-size: 10px; border: 1px solid var(--border); }
 
     .card-money-grid {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
       padding-top: 8px; border-top: 1px dashed var(--border);
     }
-    .money-block .lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; }
-    .money-block .val { font-size: 15px; font-weight: 800; color: #fff; margin-top: 1px; }
+    .money-block .lbl { font-size: 9px; color: var(--muted); text-transform: uppercase; font-weight: 700; }
+    .money-block .val { font-size: 14px; font-weight: 800; color: var(--text-head); margin-top: 1px; }
 
     .card-footer-actions {
-      display: flex; justify-content: space-between; align-items: center; margin-top: 10px;
-      padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.04);
+      display: flex; justify-content: space-between; align-items: center; margin-top: 8px;
+      padding-top: 8px; border-top: 1px solid var(--border);
     }
-    .tap-hint { font-size: 11px; color: var(--accent); font-weight: 600; cursor: pointer; }
+    .tap-hint { font-size: 11px; color: var(--accent); font-weight: 700; cursor: pointer; }
     .quick-status-btn {
-      padding: 5px 12px; font-size: 11px; font-weight: 700; border-radius: 6px;
-      border: 1px solid var(--border); background: var(--card-subtle); color: #fff; cursor: pointer;
+      padding: 5px 10px; font-size: 10px; font-weight: 700; border-radius: 6px;
+      border: 1px solid var(--border); background: var(--card-subtle); color: var(--text-head); cursor: pointer;
     }
 
-    /* =========================================
-       AYLIK TAKVİM GÖRÜNÜMÜ STİLLERİ
-       ========================================= */
-    .calendar-view { display: none; }
+    /* ==============================================================
+       RESPONSIVE AYLIK TAKVİM (Taşmaları Önleyen 7 Kolonlu Grid)
+       ============================================================== */
+    .calendar-view { display: none; width: 100%; max-width: 100%; }
     .cal-header-bar {
       display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 12px; padding: 4px 2px;
+      margin-bottom: 8px; padding: 2px 0;
     }
-    .cal-title { font-size: 16px; font-weight: 800; color: #fff; }
-    .cal-legend { display: flex; gap: 8px; font-size: 11px; color: var(--muted); }
-    .cal-legend span { display: flex; align-items: center; gap: 4px; }
+    .cal-title { font-size: 14px; font-weight: 800; color: var(--text-head); }
+    .cal-legend { display: flex; gap: 8px; font-size: 10px; color: var(--muted); font-weight: 600; }
+    .cal-legend span { display: flex; align-items: center; gap: 3px; }
     
+    /* 7 Kolonlu Başlık */
     .cal-grid-weekdays {
-      display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center;
-      margin-bottom: 6px;
+      display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; text-align: center;
+      margin-bottom: 4px; width: 100%;
     }
-    .cal-weekday { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; padding: 4px 0; }
+    .cal-weekday { font-size: 10px; font-weight: 800; color: var(--muted); text-transform: uppercase; padding: 3px 0; }
 
+    /* 7 Kolonlu Günler Izgarası (Ekrana Tam Oturan, Kesilmeyen Mimarî) */
     .cal-grid-days {
-      display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;
+      display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; width: 100%;
     }
     .cal-day-cell {
-      min-height: 72px; background: var(--card-bg); border: 1px solid var(--border);
-      border-radius: 10px; padding: 5px; display: flex; flex-direction: column;
-      position: relative; cursor: pointer; transition: all 0.15s;
+      min-width: 0; /* Hücrenin ekran dışına taşmasını engeller */
+      min-height: 58px; background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: 7px; padding: 3px 2px; display: flex; flex-direction: column;
+      position: relative; cursor: pointer; transition: all 0.15s; overflow: hidden;
     }
     .cal-day-cell:active { transform: scale(0.96); }
     .cal-day-cell.empty { background: transparent; border-color: transparent; cursor: default; }
-    .cal-day-cell.today { border-color: var(--accent); background: rgba(59, 130, 246, 0.08); }
+    .cal-day-cell.today { border-color: var(--accent); background: rgba(59, 130, 246, 0.09); }
     .cal-day-cell.has-pending { border-top: 3px solid var(--warning); }
     .cal-day-cell.has-asgari { border-top: 3px solid var(--danger); }
     .cal-day-cell.all-paid { border-top: 3px solid var(--success); }
 
-    .cal-day-num { font-size: 12px; font-weight: 800; color: #cbd5e1; margin-bottom: 3px; }
-    .cal-day-cell.today .cal-day-num { color: #60a5fa; }
+    .cal-day-num { font-size: 11px; font-weight: 800; color: var(--text-head); margin-bottom: 2px; padding-left: 2px; }
+    .cal-day-cell.today .cal-day-num { color: var(--accent); }
 
-    .cal-day-events { display: flex; flex-direction: column; gap: 2px; overflow: hidden; flex: 1; }
+    .cal-day-events { display: flex; flex-direction: column; gap: 2px; width: 100%; overflow: hidden; }
     .cal-event-pill {
-      font-size: 9px; font-weight: 700; padding: 1px 4px; border-radius: 4px;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.3;
+      font-size: 8px; font-weight: 700; padding: 1px 2px; border-radius: 3px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2;
+      width: 100%; display: block;
     }
 
-    /* Gün Detay Çekmecesi */
-    .day-sheet-title { font-size: 16px; font-weight: 800; margin-bottom: 12px; }
+    /* Gün Detay Modalı */
+    .day-sheet-title { font-size: 15px; font-weight: 800; margin-bottom: 10px; color: var(--text-head); }
     .day-total-badge {
-      background: var(--card-subtle); padding: 8px 12px; border-radius: 8px;
-      font-size: 13px; font-weight: 700; margin-bottom: 14px; display: flex; justify-content: space-between;
+      background: var(--card-subtle); padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border);
+      font-size: 12px; font-weight: 800; margin-bottom: 12px; display: flex; justify-content: space-between; color: var(--text-head);
     }
 
     /* Yıllık Ekran */
     .annual-view { display: none; }
     .annual-card {
       background: var(--card-bg); border: 1px solid var(--border);
-      border-radius: 12px; padding: 12px 14px; margin-bottom: 8px;
+      border-radius: 10px; padding: 10px 12px; margin-bottom: 6px;
       display: flex; justify-content: space-between; align-items: center;
     }
 
     /* Alt Sabit Çubuk */
     .bottom-nav {
       position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
-      background: rgba(10, 14, 23, 0.95); backdrop-filter: blur(14px);
-      border-top: 1px solid var(--border); padding: 10px 16px;
-      display: flex; gap: 10px;
+      background: var(--topbar-bg); backdrop-filter: blur(14px);
+      border-top: 1px solid var(--border); padding: 10px 12px;
+      display: flex; gap: 8px;
     }
     .btn-add-debt {
-      flex: 1; padding: 14px; background: var(--accent); color: white;
-      border: none; border-radius: 12px; font-size: 15px; font-weight: 800;
-      box-shadow: 0 4px 18px rgba(59, 130, 246, 0.4); cursor: pointer; text-align: center;
+      flex: 1; padding: 13px 8px; background: var(--accent); color: white;
+      border: none; border-radius: 10px; font-size: 13px; font-weight: 800;
+      box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35); cursor: pointer; text-align: center;
     }
     .btn-alarm-all {
-      background: var(--card-subtle); color: #e2e8f0; border: 1px solid var(--border);
-      border-radius: 12px; padding: 0 16px; font-size: 13px; font-weight: 700; cursor: pointer;
+      background: var(--card-subtle); color: var(--text-head); border: 1px solid var(--border);
+      border-radius: 10px; padding: 0 14px; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap;
     }
 
-    /* Düzenleme / Ekleme Modalı */
+    /* Düzenleme & Gün Detayı Modalları */
     .modal-overlay {
       display: none; position: fixed; inset: 0; z-index: 100;
-      background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
+      background: var(--modal-overlay); backdrop-filter: blur(5px);
       align-items: flex-end; justify-content: center;
     }
     .modal-panel {
       background: var(--card-bg); width: 100%; max-width: 520px;
-      border-radius: 20px 20px 0 0; padding: 20px 18px 30px;
+      border-radius: 18px 18px 0 0; padding: 18px 16px 30px;
       border-top: 1px solid var(--border); max-height: 90vh; overflow-y: auto;
     }
-    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
-    .modal-title { font-size: 17px; font-weight: 800; }
-    .close-btn { font-size: 24px; color: var(--muted); cursor: pointer; line-height: 1; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .modal-title { font-size: 16px; font-weight: 800; color: var(--text-head); }
+    .close-btn { font-size: 22px; color: var(--muted); cursor: pointer; line-height: 1; padding: 2px 6px; }
     
-    .field { margin-bottom: 12px; }
-    .field label { display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 4px; }
+    .field { margin-bottom: 10px; }
+    .field label { display: block; font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 4px; }
     .field input, .field select {
-      width: 100%; padding: 11px 12px; background: #080c14; border: 1px solid var(--border);
-      border-radius: 8px; color: #fff; font-size: 14px; font-weight: 600; outline: none;
+      width: 100%; padding: 10px 11px; background: var(--card-subtle); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text-head); font-size: 13px; font-weight: 600; outline: none;
     }
-    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 
-    /* Renk Seçici Izgarası */
-    .color-picker-row {
-      display: flex; gap: 8px; align-items: center; margin-top: 6px;
-    }
+    /* Renk Seçici */
+    .color-picker-row { display: flex; gap: 6px; align-items: center; margin-top: 4px; }
     .color-option {
-      width: 32px; height: 32px; border-radius: 8px; cursor: pointer;
+      width: 28px; height: 28px; border-radius: 7px; cursor: pointer;
       border: 2px solid transparent; transition: all 0.2s;
     }
-    .color-option.selected { border-color: #ffffff; transform: scale(1.1); box-shadow: 0 0 10px rgba(255,255,255,0.4); }
+    .color-option.selected { border-color: var(--text-head); transform: scale(1.1); }
     
-    .modal-btn-row { display: flex; gap: 10px; margin-top: 16px; }
+    .modal-btn-row { display: flex; gap: 8px; margin-top: 14px; }
     .btn-save-item {
-      flex: 2; padding: 13px; background: var(--accent); color: #fff;
-      font-size: 14px; font-weight: 800; border: none; border-radius: 10px; cursor: pointer;
+      flex: 2; padding: 12px; background: var(--accent); color: #fff;
+      font-size: 13px; font-weight: 800; border: none; border-radius: 9px; cursor: pointer;
     }
     .btn-delete-item {
-      flex: 1; padding: 13px; background: rgba(239, 68, 68, 0.15); color: #f87171;
-      border: 1px solid rgba(239, 68, 68, 0.3); font-size: 14px; font-weight: 700; border-radius: 10px; cursor: pointer;
+      flex: 1; padding: 12px; background: rgba(239, 68, 68, 0.15); color: var(--danger);
+      border: 1px solid rgba(239, 68, 68, 0.3); font-size: 13px; font-weight: 700; border-radius: 9px; cursor: pointer;
     }
   </style>
 </head>
 <body>
 
-  <!-- Üst Bar -->
+  <!-- Üst Bar: Logo, Ay Değiştirici, Tema (Dark/Light) ve Sıfırla -->
   <div class="top-bar">
     <div class="brand">Finans<span>Takip</span></div>
     <div class="top-actions">
@@ -292,11 +319,12 @@
         <span class="cur-month-text" id="curMonthLabel">Eylül 2026</span>
         <button class="month-nav-btn" onclick="navMonth(1)">&gt;</button>
       </div>
-      <button class="btn-reset" onclick="resetToExcel()" title="Excel verilerine sıfırla">Sıfırla</button>
+      <button class="btn-icon" id="themeToggleBtn" onclick="toggleTheme()" title="Aydınlık / Karanlık Tema">☀️</button>
+      <button class="btn-icon" onclick="resetToExcel()" title="Excel verilerine sıfırla">↺</button>
     </div>
   </div>
 
-  <!-- Zaman Görünüm Sekmeleri (Takvim eklendi) -->
+  <!-- Zaman Görünüm Sekmeleri -->
   <div class="time-tabs">
     <div class="time-tab" onclick="changeView('daily', this)">Bugün / 3G</div>
     <div class="time-tab" onclick="changeView('weekly', this)">Bu Hafta</div>
@@ -313,7 +341,7 @@
       <div class="kpi-main">
         <div class="kpi-row-top">
           <span class="kpi-title">Ödenecek Toplam Tutar</span>
-          <span style="font-size:11px; color:var(--muted);" id="kpiCount">16 Kalem</span>
+          <span style="font-size:10px; color:var(--muted); font-weight:700;" id="kpiCount">16 Kalem</span>
         </div>
         <div class="kpi-main-val" id="kpiTotalDebt">₺630.182,71</div>
 
@@ -328,7 +356,7 @@
           </div>
           <div class="kpi-mini">
             <div class="kpi-mini-lbl">Kalan Asgari Tutar</div>
-            <div class="kpi-mini-val" id="kpiAsgari" style="color:#fca5a5">₺56.210,56</div>
+            <div class="kpi-mini-val" id="kpiAsgari" style="color:var(--danger)">₺56.210,56</div>
           </div>
           <div class="kpi-mini">
             <div class="kpi-mini-lbl">Toplam Kredi Borcu</div>
@@ -347,8 +375,8 @@
           <div class="progress-fill" id="limitProgress" style="width: 48%;"></div>
         </div>
         <div class="limits-footer">
-          <span>Toplam Limit: <b>₺3.749.200</b></span>
-          <span>Boşta Limit: <b style="color:var(--success)" id="limitFreeText">₺1.789.578 (%48)</b></span>
+          <span>Toplam Limit: <b>₺3.75M</b></span>
+          <span>Boşta: <b style="color:var(--success)" id="limitFreeText">₺1.79M (%48)</b></span>
         </div>
       </div>
 
@@ -363,7 +391,7 @@
           <div class="pill" onclick="applyTypeFilter('Kredi', this)">🏦 Kredi</div>
         </div>
         <button class="btn-cal-sync" onclick="exportCalendar()">
-          🔔 Alarma Aktar
+          🔔 Alarm
         </button>
       </div>
 
@@ -371,19 +399,19 @@
       <div id="debtList"></div>
     </div>
 
-    <!-- =========================================
-         AYLIK TAKVİM EKRANI
-         ========================================= -->
+    <!-- ==============================================================
+         AYLIK TAKVİM EKRANI (Taşma Yapmayan Mobil Uyumlu Grid)
+         ============================================================== -->
     <div class="calendar-view" id="calendarWrapper">
       <div class="cal-header-bar">
-        <div class="cal-title" id="calMonthDisplay">Eylül 2026 Ödeme Takvimi</div>
+        <div class="cal-title" id="calMonthDisplay">Eylül 2026 Takvimi</div>
         <div class="cal-legend">
           <span><span class="color-dot" style="background:var(--warning);"></span>Bekliyor</span>
           <span><span class="color-dot" style="background:var(--success);"></span>Ödendi</span>
         </div>
       </div>
 
-      <!-- Haftanın Günleri -->
+      <!-- Haftanın 7 Günü Başlıkları -->
       <div class="cal-grid-weekdays">
         <div class="cal-weekday">Pzt</div>
         <div class="cal-weekday">Sal</div>
@@ -394,20 +422,20 @@
         <div class="cal-weekday">Paz</div>
       </div>
 
-      <!-- Günler Izgarası (Dinamik 1-30 / 1-31) -->
+      <!-- Günler Izgarası (Dinamik ve Ekrana Tam Sığan) -->
       <div class="cal-grid-days" id="calDaysGrid"></div>
     </div>
 
     <!-- Yıllık Görünüm -->
     <div class="annual-view" id="annualWrapper">
-      <div class="kpi-main" style="margin-bottom:14px;">
+      <div class="kpi-main" style="margin-bottom:12px;">
         <div class="kpi-title">2026 Yıllık Nakit ve Borç Projeksiyonu</div>
         <div class="kpi-main-val">₺6.840.000</div>
-        <div style="font-size:12px; color:var(--muted); margin-top:4px;">
-          Yıl genelinde kapanan ve planlanan ortalama aylık yük: <b>₺570.000</b>
+        <div style="font-size:11px; color:var(--muted); margin-top:3px;">
+          Ortalama aylık nakit çıkışı: <b>₺570.000</b>
         </div>
       </div>
-      <div style="font-size:12px; font-weight:700; color:var(--muted); margin-bottom:8px; text-transform:uppercase;">
+      <div style="font-size:11px; font-weight:700; color:var(--muted); margin-bottom:6px; text-transform:uppercase;">
         Aylık Gerçekleşen & Planlanan
       </div>
       <div id="annualMonths"></div>
@@ -421,7 +449,7 @@
     <button class="btn-alarm-all" onclick="exportCalendar()">📅 Alarm Kur</button>
   </div>
 
-  <!-- Gün Detayı Modalı (Takvimde güne basıldığında açılır) -->
+  <!-- Gün Detayı Modalı (Takvimde güne tıklandığında açılır) -->
   <div class="modal-overlay" id="dayDetailModal" onclick="handleDayModalClick(event)">
     <div class="modal-panel">
       <div class="modal-header">
@@ -454,7 +482,7 @@
       <!-- Tür ve Renk Seçimi -->
       <div class="field-row">
         <div class="field">
-          <label>Borç Türü (Şirket / Şahsi)</label>
+          <label>Borç Türü</label>
           <select id="mCategory" onchange="autoSuggestColor(this.value)">
             <option value="Şirket">Şirket Kartı / Gideri</option>
             <option value="Şahsi">Şahsi Kart / Gider</option>
@@ -463,14 +491,14 @@
           </select>
         </div>
         <div class="field">
-          <label>Kutu Kenar & Vurgu Rengi</label>
+          <label>Vurgu Rengi</label>
           <div class="color-picker-row">
-            <div class="color-option" style="background:#f59e0b;" data-color="#f59e0b" onclick="selectColor('#f59e0b', this)" title="Sarı/Turuncu"></div>
+            <div class="color-option" style="background:#f59e0b;" data-color="#f59e0b" onclick="selectColor('#f59e0b', this)" title="Sarı"></div>
             <div class="color-option" style="background:#3b82f6;" data-color="#3b82f6" onclick="selectColor('#3b82f6', this)" title="Mavi"></div>
             <div class="color-option" style="background:#8b5cf6;" data-color="#8b5cf6" onclick="selectColor('#8b5cf6', this)" title="Mor"></div>
             <div class="color-option" style="background:#ef4444;" data-color="#ef4444" onclick="selectColor('#ef4444', this)" title="Kırmızı"></div>
             <div class="color-option" style="background:#10b981;" data-color="#10b981" onclick="selectColor('#10b981', this)" title="Yeşil"></div>
-            <div class="color-option" style="background:#06b6d4;" data-color="#06b6d4" onclick="selectColor('#06b6d4', this)" title="Açık Mavi"></div>
+            <div class="color-option" style="background:#06b6d4;" data-color="#06b6d4" onclick="selectColor('#06b6d4', this)" title="Camgöbeği"></div>
           </div>
           <input type="hidden" id="mColor" value="#f59e0b">
         </div>
@@ -482,7 +510,7 @@
           <input type="number" id="mDay" placeholder="2">
         </div>
         <div class="field">
-          <label>Hesap Kesimi / Taksit Notu</label>
+          <label>Hesap Kesimi / Not</label>
           <input type="text" id="mNote" placeholder="Örn: 23. GÜN">
         </div>
       </div>
@@ -520,7 +548,7 @@
           <input type="number" id="mLimit" placeholder="978100">
         </div>
         <div class="field">
-          <label>Güncel Kalan Limit (₺)</label>
+          <label>Kalan Limit (₺)</label>
           <input type="number" id="mRemainLimit" placeholder="707505">
         </div>
       </div>
@@ -531,7 +559,7 @@
           <input type="number" id="mExtraLimit" placeholder="0">
         </div>
         <div class="field">
-          <label>Borcun Tamamı (Kredi İse)</label>
+          <label>Borcun Tamamı (Kredi)</label>
           <input type="number" step="any" id="mGrandDebt" placeholder="890033.09">
         </div>
       </div>
@@ -544,6 +572,24 @@
   </div>
 
   <script>
+    // Tema Motoru (Dark / Light Mode)
+    function initTheme() {
+      const savedTheme = localStorage.getItem('user_app_theme') || 'dark';
+      if (savedTheme === 'light') {
+        document.body.classList.add('light-mode');
+        document.getElementById('themeToggleBtn').innerText = '🌙';
+      } else {
+        document.body.classList.remove('light-mode');
+        document.getElementById('themeToggleBtn').innerText = '☀️';
+      }
+    }
+
+    function toggleTheme() {
+      const isLight = document.body.classList.toggle('light-mode');
+      localStorage.setItem('user_app_theme', isLight ? 'light' : 'dark');
+      document.getElementById('themeToggleBtn').innerText = isLight ? '🌙' : '☀️';
+    }
+
     // Ay İsimleri ve Orijinal Veri Seti
     const monthNames = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
     let currentYear = 2026;
@@ -568,7 +614,7 @@
       { id: 16, day: 30, bank: "EV/DÜKKAN AİDAT", category: "Sabit", color: "#06b6d4", note: "30. GÜN", min: 3000.00, total: 3000.00, status: "BEKLİYOR", paid: 0, cardLimit: 0, extraLimit: 0, remainLimit: 0, grandDebt: 0 }
     ];
 
-    let myDebts = JSON.parse(localStorage.getItem('my_custom_excel_data_v4')) || initialExcelData;
+    let myDebts = JSON.parse(localStorage.getItem('my_custom_excel_data_v5')) || initialExcelData;
     let currentTab = 'monthly';
     let currentFilter = 'all';
     let currentTypeFilter = null;
@@ -579,20 +625,15 @@
 
     function navMonth(direction) {
       currentMonthIndex += direction;
-      if(currentMonthIndex < 0) {
-        currentMonthIndex = 11;
-        currentYear--;
-      } else if(currentMonthIndex > 11) {
-        currentMonthIndex = 0;
-        currentYear++;
-      }
+      if(currentMonthIndex < 0) { currentMonthIndex = 11; currentYear--; }
+      else if(currentMonthIndex > 11) { currentMonthIndex = 0; currentYear++; }
       document.getElementById('curMonthLabel').innerText = `${monthNames[currentMonthIndex]} ${currentYear}`;
-      document.getElementById('calMonthDisplay').innerText = `${monthNames[currentMonthIndex]} ${currentYear} Ödeme Takvimi`;
+      document.getElementById('calMonthDisplay').innerText = `${monthNames[currentMonthIndex]} ${currentYear} Takvimi`;
       render();
     }
 
     function render() {
-      // 1. KPI Hesaplamaları
+      // KPI Hesaplamaları
       let totalDebt = 0, totalPaid = 0, remainingAsgari = 0, totalCardLimit = 0, totalExtra = 0, totalRemainLimit = 0, grandLoanTotal = 0;
 
       myDebts.forEach(d => {
@@ -624,18 +665,15 @@
       document.getElementById('limitProgress').style.width = (100 - freePercent) + '%';
       document.getElementById('limitFreeText').innerText = `${fmt(totalRemainLimit)} (%${freePercent} Boşta)`;
 
-      // 2. Liste Görünümü Çizimi
+      // Liste Görünümü
       const listEl = document.getElementById('debtList');
       listEl.innerHTML = '';
 
       let list = [...myDebts].sort((a,b) => a.day - b.day);
 
       const today = 8;
-      if (currentTab === 'daily') {
-        list = list.filter(item => item.day >= today && item.day <= today + 3);
-      } else if (currentTab === 'weekly') {
-        list = list.filter(item => item.day >= today && item.day <= today + 7);
-      }
+      if (currentTab === 'daily') list = list.filter(item => item.day >= today && item.day <= today + 3);
+      else if (currentTab === 'weekly') list = list.filter(item => item.day >= today && item.day <= today + 7);
 
       if (currentFilter === 'bekliyor') list = list.filter(i => i.status === 'BEKLİYOR');
       else if (currentFilter === 'odendi') list = list.filter(i => i.status !== 'BEKLİYOR');
@@ -643,7 +681,7 @@
       if (currentTypeFilter) list = list.filter(i => (i.category || '').includes(currentTypeFilter));
 
       if(list.length === 0) {
-        listEl.innerHTML = `<div style="text-align:center; padding:32px 10px; color:var(--muted); font-size:13px;">Bu filtreye uygun ödeme bulunamadı.</div>`;
+        listEl.innerHTML = `<div style="text-align:center; padding:30px 10px; color:var(--muted); font-size:12px;">Bu filtreye uygun ödeme bulunamadı.</div>`;
       } else {
         list.forEach(item => {
           const card = document.createElement('div');
@@ -657,8 +695,7 @@
 
           const cardKalan = item.total - item.paid;
           card.className = `debt-card ${isDone ? 'is-paid-done' : ''}`;
-          card.style.borderLeft = `5px solid ${cardColor}`;
-          card.style.background = `linear-gradient(135deg, ${cardColor}0d, var(--card-bg) 60%)`;
+          card.style.borderLeft = `4px solid ${cardColor}`;
 
           card.innerHTML = `
             <div class="card-top">
@@ -668,7 +705,7 @@
                   <span class="bank-title">${item.bank}</span>
                 </div>
                 <div class="card-sub-info">
-                  <span class="type-badge" style="background:${cardColor}25; color:${cardColor}; border:1px solid ${cardColor}50;">
+                  <span class="type-badge" style="background:${cardColor}22; color:${cardColor}; border:1px solid ${cardColor}44;">
                     ${item.category || 'Şirket'}
                   </span>
                   <span class="tag-bubble">Vade: ${item.day}. Gün</span>
@@ -686,7 +723,7 @@
               </div>
               <div class="money-block">
                 <div class="lbl">Asgari Tutar</div>
-                <div class="val" style="color:#fca5a5;">${fmt(item.min)}</div>
+                <div class="val" style="color:var(--danger);">${fmt(item.min)}</div>
               </div>
               <div class="money-block">
                 <div class="lbl">Yapılan Ödeme</div>
@@ -699,7 +736,7 @@
             </div>
 
             <div class="card-footer-actions">
-              <span class="tap-hint" onclick="openEditModal(${item.id})">✏️ Düzenle / Renk Değiştir</span>
+              <span class="tap-hint" onclick="openEditModal(${item.id})">✏️ Düzenle / Renk</span>
               <button class="quick-status-btn" onclick="cycleStatus(${item.id})">Durum Değiştir</button>
             </div>
           `;
@@ -707,44 +744,34 @@
         });
       }
 
-      // 3. Takvim Görünümü Çizimi
+      // Responsive Takvim Çizimi
       renderCalendar();
 
-      localStorage.setItem('my_custom_excel_data_v4', JSON.stringify(myDebts));
+      localStorage.setItem('my_custom_excel_data_v5', JSON.stringify(myDebts));
     }
 
-    // =========================================
-    // DİNAMİK AYLIK TAKVİM MOTORU
-    // =========================================
+    // RESPONSIVE TAKVİM MOTORU (Mobilde 7 kolonu ekrana tam sığdırır)
     function renderCalendar() {
       const grid = document.getElementById('calDaysGrid');
       grid.innerHTML = '';
 
-      // Ayın toplam gün sayısı (28, 29, 30 veya 31)
       const daysInMonth = new Date(currentYear, currentMonthIndex + 1, 0).getDate();
-
-      // Ayın ilk gününün haftanın hangi gününe denk geldiği (0=Paz, 1=Pzt...)
       let firstDayIndex = new Date(currentYear, currentMonthIndex, 1).getDay();
-      // Pazartesi'yi 0 yapalım: Pzt=0, Sal=1 ... Paz=6
-      firstDayIndex = (firstDayIndex === 0) ? 6 : firstDayIndex - 1;
+      firstDayIndex = (firstDayIndex === 0) ? 6 : firstDayIndex - 1; // Pzt=0 ... Paz=6
 
-      // Önceki aydan boş hücreler
       for (let i = 0; i < firstDayIndex; i++) {
         const emptyCell = document.createElement('div');
         emptyCell.className = 'cal-day-cell empty';
         grid.appendChild(emptyCell);
       }
 
-      // Günleri oluştur
       for (let d = 1; d <= daysInMonth; d++) {
         const cell = document.createElement('div');
         cell.className = 'cal-day-cell';
         cell.onclick = () => openDayDetail(d);
 
-        // O günün ödemelerini bul
         const dayItems = myDebts.filter(item => item.day === d);
 
-        // Durum göstergesi
         let hasPending = false;
         let hasAsgari = false;
         let allPaid = dayItems.length > 0;
@@ -759,7 +786,6 @@
         else if (hasAsgari) cell.classList.add('has-asgari');
         else if (allPaid) cell.classList.add('all-paid');
 
-        // Bugün kontrolü (Eylül 2026 için 8'i)
         if (currentMonthIndex === 8 && currentYear === 2026 && d === 8) {
           cell.classList.add('today');
         }
@@ -767,16 +793,17 @@
         let eventsHtml = '';
         dayItems.slice(0, 2).forEach(it => {
           const itColor = it.color || '#f59e0b';
-          const bgOpacity = it.status === 'BEKLİYOR' ? '30' : '15';
+          const shortName = it.bank.split(' ')[0].substring(0, 6);
+          const shortAmount = it.total > 0 ? (it.total >= 1000 ? Math.round(it.total/1000) + 'k' : Math.round(it.total)) : '0';
           eventsHtml += `
-            <div class="cal-event-pill" style="background:${itColor}${bgOpacity}; color:#fff; border-left:2px solid ${itColor};">
-              ${it.bank.split(' ')[0]} ${it.total > 0 ? (it.total >= 1000 ? Math.round(it.total/1000) + 'k' : it.total) : '0'}
+            <div class="cal-event-pill" style="background:${itColor}26; color:var(--text-head); border-left:2px solid ${itColor};">
+              ${shortName} ${shortAmount}
             </div>
           `;
         });
 
         if (dayItems.length > 2) {
-          eventsHtml += `<div style="font-size:8px; color:var(--muted); font-weight:700;">+${dayItems.length - 2} kalem</div>`;
+          eventsHtml += `<div style="font-size:7.5px; color:var(--muted); font-weight:800; padding-left:2px;">+${dayItems.length - 2}</div>`;
         }
 
         cell.innerHTML = `
@@ -788,7 +815,6 @@
       }
     }
 
-    // Günlük Detay Modalı (Takvim kutusuna basıldığında açılır)
     function openDayDetail(day) {
       const items = myDebts.filter(item => item.day === day);
       const modal = document.getElementById('dayDetailModal');
@@ -801,31 +827,31 @@
 
       if (items.length === 0) {
         totalAmountEl.innerText = '₺0';
-        listEl.innerHTML = `<div style="text-align:center; padding:24px; color:var(--muted); font-size:13px;">Bu tarihte planlanmış bir ödeme bulunmuyor.</div>`;
+        listEl.innerHTML = `<div style="text-align:center; padding:20px; color:var(--muted); font-size:12px;">Bu tarihte planlanmış bir ödeme bulunmuyor.</div>`;
       } else {
         let dayTotal = 0;
         items.forEach(it => {
           dayTotal += it.total;
           const row = document.createElement('div');
           const itColor = it.color || '#f59e0b';
-          row.style.cssText = `background:var(--card-subtle); border-left:4px solid ${itColor}; border-radius:10px; padding:12px; margin-bottom:8px;`;
+          row.style.cssText = `background:var(--card-subtle); border-left:4px solid ${itColor}; border-radius:8px; padding:10px; margin-bottom:6px; border:1px solid var(--border);`;
 
           row.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:flex-start;">
               <div>
-                <div style="font-size:14px; font-weight:800; color:#fff;">${it.bank}</div>
-                <div style="font-size:11px; color:var(--muted); margin-top:2px;">
+                <div style="font-size:13px; font-weight:800; color:var(--text-head);">${it.bank}</div>
+                <div style="font-size:10px; color:var(--muted); margin-top:2px;">
                   <span>${it.category || 'Gider'}</span> | <span>Kesim: ${it.note || '-'}</span>
                 </div>
               </div>
               <div style="text-align:right;">
-                <div style="font-size:15px; font-weight:800; color:#fff;">${fmt(it.total)}</div>
-                <div style="font-size:10px; font-weight:700; color:${it.status === 'BEKLİYOR' ? 'var(--warning)' : 'var(--success)'};">${it.status}</div>
+                <div style="font-size:14px; font-weight:800; color:var(--text-head);">${fmt(it.total)}</div>
+                <div style="font-size:9.5px; font-weight:700; color:${it.status === 'BEKLİYOR' ? 'var(--warning)' : 'var(--success)'};">${it.status}</div>
               </div>
             </div>
-            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px; padding-top:6px; border-top:1px solid rgba(255,255,255,0.06);">
+            <div style="display:flex; justify-content:flex-end; gap:6px; margin-top:6px; padding-top:6px; border-top:1px solid var(--border);">
               <button onclick="closeDayModal(); openEditModal(${it.id})" style="background:none; border:none; color:var(--accent); font-size:11px; font-weight:700; cursor:pointer;">✏️ Düzenle</button>
-              <button onclick="cycleStatus(${it.id}); openDayDetail(${day})" style="background:#26354f; color:#93c5fd; border:1px solid #3b82f6; border-radius:6px; padding:3px 8px; font-size:11px; font-weight:700; cursor:pointer;">Durum Değiştir</button>
+              <button onclick="cycleStatus(${it.id}); openDayDetail(${day})" style="background:var(--accent); color:#fff; border:none; border-radius:5px; padding:3px 8px; font-size:10px; font-weight:700; cursor:pointer;">Durum Değiştir</button>
             </div>
           `;
           listEl.appendChild(row);
@@ -836,17 +862,9 @@
       modal.style.display = 'flex';
     }
 
-    function closeDayModal() {
-      document.getElementById('dayDetailModal').style.display = 'none';
-    }
+    function closeDayModal() { document.getElementById('dayDetailModal').style.display = 'none'; }
+    function handleDayModalClick(e) { if(e.target.id === 'dayDetailModal') closeDayModal(); }
 
-    function handleDayModalClick(e) {
-      if(e.target.id === 'dayDetailModal') closeDayModal();
-    }
-
-    // =========================================
-    // RENK, DÜZENLEME VE DURUM FONKSİYONLARI
-    // =========================================
     function selectColor(hex, el) {
       document.querySelectorAll('.color-option').forEach(c => c.classList.remove('selected'));
       if(el) el.classList.add('selected');
@@ -859,7 +877,6 @@
       else if(cat === 'Kredi') suggested = "#3b82f6";
       else if(cat === 'Sabit') suggested = "#06b6d4";
       else if(cat === 'Şirket') suggested = "#f59e0b";
-
       const opt = document.querySelector(`.color-option[data-color="${suggested}"]`);
       selectColor(suggested, opt);
     }
@@ -935,17 +952,11 @@
       document.getElementById('mGrandDebt').value = '0';
 
       autoSuggestColor('Şirket');
-
       document.getElementById('debtModal').style.display = 'flex';
     }
 
-    function closeModal() {
-      document.getElementById('debtModal').style.display = 'none';
-    }
-
-    function handleBackdropClick(e) {
-      if(e.target.id === 'debtModal') closeModal();
-    }
+    function closeModal() { document.getElementById('debtModal').style.display = 'none'; }
+    function handleBackdropClick(e) { if(e.target.id === 'debtModal') closeModal(); }
 
     function saveItem() {
       const id = document.getElementById('editId').value;
@@ -998,14 +1009,13 @@
     }
 
     function resetToExcel() {
-      if(confirm("Tüm veriler ve renkler orijinal Excel tablosuna sıfırlansın mı?")) {
+      if(confirm("Tüm veriler orijinal Excel tablosuna sıfırlansın mı?")) {
         myDebts = JSON.parse(JSON.stringify(initialExcelData));
-        localStorage.removeItem('my_custom_excel_data_v4');
+        localStorage.removeItem('my_custom_excel_data_v5');
         render();
       }
     }
 
-    // Görünüm Değiştirici
     function changeView(view, el) {
       currentTab = view;
       document.querySelectorAll('.time-tab').forEach(t => t.classList.remove('active'));
@@ -1069,12 +1079,12 @@
         item.className = 'annual-card';
         item.innerHTML = `
           <div>
-            <div style="font-weight:800; font-size:14px; color:#fff;">${m.name}</div>
-            <div style="font-size:11px; color:var(--muted); margin-top:2px;">Ödenen: ${fmt(m.paid)}</div>
+            <div style="font-weight:800; font-size:13px; color:var(--text-head);">${m.name}</div>
+            <div style="font-size:10px; color:var(--muted); margin-top:2px;">Ödenen: ${fmt(m.paid)}</div>
           </div>
           <div style="text-align:right;">
-            <div style="font-size:15px; font-weight:800; color:#fff;">${fmt(m.total)}</div>
-            <div style="font-size:10px; font-weight:700; color:${m.status === 'KAPANDI' ? 'var(--success)' : 'var(--warning)'}">${m.status}</div>
+            <div style="font-size:14px; font-weight:800; color:var(--text-head);">${fmt(m.total)}</div>
+            <div style="font-size:9.5px; font-weight:700; color:${m.status === 'KAPANDI' ? 'var(--success)' : 'var(--warning)'}">${m.status}</div>
           </div>
         `;
         el.appendChild(item);
@@ -1117,6 +1127,7 @@
       document.body.removeChild(link);
     }
 
+    initTheme();
     render();
   </script>
 </body>
