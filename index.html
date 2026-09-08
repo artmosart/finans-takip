@@ -19,7 +19,6 @@
       --success: #10b981;
       --danger: #ef4444;
       --warning: #f59e0b;
-      --asgari-bg: #7f1d1d;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
     body { background: var(--bg); color: var(--text); padding-bottom: 96px; -webkit-font-smoothing: antialiased; }
@@ -94,10 +93,12 @@
     /* Filtreler */
     .filter-bar {
       display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
+      flex-wrap: wrap; gap: 8px;
     }
-    .pills { display: flex; gap: 6px; }
+    .pills { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+    .pills::-webkit-scrollbar { display: none; }
     .pill {
-      font-size: 12px; font-weight: 600; padding: 5px 12px; border-radius: 16px;
+      font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: 16px; white-space: nowrap;
       background: var(--card-subtle); color: var(--muted); border: 1px solid var(--border);
       cursor: pointer;
     }
@@ -107,6 +108,11 @@
       font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;
     }
 
+    /* Renk Paleti Rozetleri */
+    .color-dot {
+      display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; vertical-align: middle;
+    }
+
     /* Kart Öğesi */
     .debt-card {
       background: var(--card-bg); border: 1px solid var(--border);
@@ -114,13 +120,14 @@
       position: relative; transition: all 0.15s;
     }
     .debt-card:active { transform: scale(0.99); }
-    .debt-card.status-asgari { border-left: 4px solid var(--danger); }
-    .debt-card.status-tamam { border-left: 4px solid var(--success); opacity: 0.65; }
-    .debt-card.status-yok { opacity: 0.5; border-left: 4px solid #4b5563; }
-    .debt-card.status-bekliyor { border-left: 4px solid var(--warning); }
+    .debt-card.is-paid-done { opacity: 0.55; }
 
     .card-top { display: flex; justify-content: space-between; align-items: flex-start; }
+    .bank-title-box { display: flex; align-items: center; gap: 6px; }
     .bank-title { font-size: 15px; font-weight: 800; color: #fff; }
+    .type-badge {
+      font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 6px; text-transform: uppercase;
+    }
     .badge {
       font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px;
       text-transform: uppercase;
@@ -130,7 +137,7 @@
     .badge.b-tamam { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; }
     .badge.b-yok { background: rgba(142, 155, 178, 0.15); color: #9ca3af; }
 
-    .card-sub-info { font-size: 12px; color: var(--muted); margin: 4px 0 10px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .card-sub-info { font-size: 12px; color: var(--muted); margin: 6px 0 10px; display: flex; gap: 6px; flex-wrap: wrap; }
     .tag-bubble { background: var(--card-subtle); padding: 2px 7px; border-radius: 5px; font-size: 11px; }
 
     .card-money-grid {
@@ -197,6 +204,16 @@
       border-radius: 8px; color: #fff; font-size: 14px; font-weight: 600; outline: none;
     }
     .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    /* Renk Seçici Izgarası */
+    .color-picker-row {
+      display: flex; gap: 8px; align-items: center; margin-top: 6px;
+    }
+    .color-option {
+      width: 32px; height: 32px; border-radius: 8px; cursor: pointer;
+      border: 2px solid transparent; transition: all 0.2s;
+    }
+    .color-option.selected { border-color: #ffffff; transform: scale(1.1); box-shadow: 0 0 10px rgba(255,255,255,0.4); }
     
     .modal-btn-row { display: flex; gap: 10px; margin-top: 16px; }
     .btn-save-item {
@@ -275,12 +292,15 @@
         </div>
       </div>
 
-      <!-- Filtreler -->
+      <!-- Filtreler: Durum ve Tür/Kategori Filtreleme -->
       <div class="filter-bar">
         <div class="pills">
           <div class="pill active" onclick="applyFilter('all', this)">Tümü</div>
           <div class="pill" onclick="applyFilter('bekliyor', this)">Bekleyenler</div>
           <div class="pill" onclick="applyFilter('odendi', this)">Ödenenler</div>
+          <div class="pill" onclick="applyTypeFilter('Şirket', this)">🏢 Şirket</div>
+          <div class="pill" onclick="applyTypeFilter('Şahsi', this)">👤 Şahsi</div>
+          <div class="pill" onclick="applyTypeFilter('Kredi', this)">🏦 Kredi</div>
         </div>
         <button class="btn-cal-sync" onclick="exportCalendar()">
           🔔 Alarma / Takvime Aktar
@@ -327,6 +347,31 @@
       <div class="field">
         <label>Banka / Kurum / Gider Adı</label>
         <input type="text" id="mBank" placeholder="Örn: VAKIF MOS KK">
+      </div>
+
+      <!-- Tür ve Renk Seçimi -->
+      <div class="field-row">
+        <div class="field">
+          <label>Borç Türü (Şirket / Şahsi)</label>
+          <select id="mCategory" onchange="autoSuggestColor(this.value)">
+            <option value="Şirket">Şirket Kartı / Gideri</option>
+            <option value="Şahsi">Şahsi Kart / Gider</option>
+            <option value="Kredi">Banka Kredisi</option>
+            <option value="Sabit">Kira / Aidat / Sabit</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Kutu Kenar & Vurgu Rengi</label>
+          <div class="color-picker-row">
+            <div class="color-option" style="background:#f59e0b;" data-color="#f59e0b" onclick="selectColor('#f59e0b', this)" title="Sarı/Turuncu"></div>
+            <div class="color-option" style="background:#3b82f6;" data-color="#3b82f6" onclick="selectColor('#3b82f6', this)" title="Mavi"></div>
+            <div class="color-option" style="background:#8b5cf6;" data-color="#8b5cf6" onclick="selectColor('#8b5cf6', this)" title="Mor"></div>
+            <div class="color-option" style="background:#ef4444;" data-color="#ef4444" onclick="selectColor('#ef4444', this)" title="Kırmızı"></div>
+            <div class="color-option" style="background:#10b981;" data-color="#10b981" onclick="selectColor('#10b981', this)" title="Yeşil"></div>
+            <div class="color-option" style="background:#06b6d4;" data-color="#06b6d4" onclick="selectColor('#06b6d4', this)" title="Açık Mavi"></div>
+          </div>
+          <input type="hidden" id="mColor" value="#f59e0b">
+        </div>
       </div>
 
       <div class="field-row">
@@ -397,36 +442,37 @@
   </div>
 
   <script>
-    // Excel'deki orijinal liste ve tutarlar (Eylül 2026 tablosunun tam karşılığı)
+    // Excel tablonuzdaki satırların tam karşılığı ve renk kodları
     const initialExcelData = [
-      { id: 1, day: 1, bank: "AXESS 0282 KK", note: "27. GÜN", min: 0, total: 0, status: "BORÇ YOK", paid: 0, cardLimit: 25000, extraLimit: 15000, remainLimit: 25000, grandDebt: 0 },
-      { id: 2, day: 31, bank: "HALKBANK ŞİRKET KK", note: "26. GÜN", min: 14411.80, total: 72058.99, status: "ASGARİ ÖDENDİ", paid: 14411.80, cardLimit: 250000, extraLimit: 150000, remainLimit: 17000, grandDebt: 0 },
-      { id: 3, day: 2, bank: "VAKIF MOS KK", note: "23. GÜN", min: 99938.00, total: 249843.44, status: "ASGARİ ÖDENDİ", paid: 99938.00, cardLimit: 978100, extraLimit: 0, remainLimit: 707505, grandDebt: 0 },
-      { id: 4, day: 7, bank: "İŞ BANK ŞİRKET KK", note: "30.GÜN", min: 39220.88, total: 196104.41, status: "ASGARİ ÖDENDİ", paid: 39220.88, cardLimit: 250000, extraLimit: 0, remainLimit: 81000, grandDebt: 0 },
-      { id: 5, day: 7, bank: "İŞ BANK MOS KK", note: "27. GÜN", min: 22386.12, total: 55965.31, status: "ASGARİ ÖDENDİ", paid: 22386.12, cardLimit: 121400, extraLimit: 0, remainLimit: 51000, grandDebt: 0 },
-      { id: 6, day: 11, bank: "DENİZBANK KK", note: "31. GÜN", min: 0, total: 0, status: "BORÇ YOK", paid: 0, cardLimit: 30000, extraLimit: 70000, remainLimit: 30000, grandDebt: 0 },
-      { id: 7, day: 8, bank: "VAKIF ŞİRKET KK", note: "3. GÜN", min: 0, total: 0, status: "BORÇ YOK", paid: 0, cardLimit: 75000, extraLimit: 10000, remainLimit: 71000, grandDebt: 0 },
-      { id: 8, day: 12, bank: "VAKIFBANK KREDİSİ", note: "49/18. TAKSİT", min: 19348.56, total: 19348.56, status: "BEKLİYOR", paid: 0, cardLimit: 0, extraLimit: 0, remainLimit: 0, grandDebt: 890033.09 },
-      { id: 9, day: 14, bank: "QNB ŞİRKET KK", note: "9. GÜN", min: 0, total: 0, status: "BEKLİYOR", paid: 0, cardLimit: 719200, extraLimit: 50000, remainLimit: 117000, grandDebt: 0 },
-      { id: 10, day: 18, bank: "KUVEYT ŞİRKET KK", note: "8. GÜN", min: 0, total: 0, status: "BEKLİYOR", paid: 0, cardLimit: 5000, extraLimit: 0, remainLimit: 4000, grandDebt: 0 },
-      { id: 11, day: 20, bank: "TALAT KREDİ", note: "20.GÜN", min: 3862.00, total: 3862.00, status: "BEKLİYOR", paid: 0, cardLimit: 0, extraLimit: 0, remainLimit: 0, grandDebt: 0 },
-      { id: 12, day: 20, bank: "MAĞAZA KİRA", note: "20.GÜN", min: 28000.00, total: 28000.00, status: "BEKLİYOR", paid: 0, cardLimit: 0, extraLimit: 0, remainLimit: 0, grandDebt: 0 },
-      { id: 13, day: 24, bank: "ZİRAAT ŞİRKET KK", note: "13. GÜN", min: 0, total: 0, status: "BEKLİYOR", paid: 0, cardLimit: 220000, extraLimit: 0, remainLimit: 0, grandDebt: 0 },
-      { id: 14, day: 25, bank: "QNB MOS KK", note: "15. GÜN", min: 0, total: 0, status: "BEKLİYOR", paid: 0, cardLimit: 780500, extraLimit: 0, remainLimit: 686073, grandDebt: 0 },
-      { id: 15, day: 28, bank: "VERGİLER", note: "26. GÜN", min: 2000.00, total: 2000.00, status: "BEKLİYOR", paid: 0, cardLimit: 0, extraLimit: 0, remainLimit: 0, grandDebt: 0 },
-      { id: 16, day: 30, bank: "EV/DÜKKAN AİDAT", note: "30. GÜN", min: 3000.00, total: 3000.00, status: "BEKLİYOR", paid: 0, cardLimit: 0, extraLimit: 0, remainLimit: 0, grandDebt: 0 }
+      { id: 1, day: 1, bank: "AXESS 0282 KK", category: "Şahsi", color: "#8b5cf6", note: "27. GÜN", min: 0, total: 0, status: "BORÇ YOK", paid: 0, cardLimit: 25000, extraLimit: 15000, remainLimit: 25000, grandDebt: 0 },
+      { id: 2, day: 31, bank: "HALKBANK ŞİRKET KK", category: "Şirket", color: "#f59e0b", note: "26. GÜN", min: 14411.80, total: 72058.99, status: "ASGARİ ÖDENDİ", paid: 14411.80, cardLimit: 250000, extraLimit: 150000, remainLimit: 17000, grandDebt: 0 },
+      { id: 3, day: 2, bank: "VAKIF MOS KK", category: "Şirket", color: "#f59e0b", note: "23. GÜN", min: 99938.00, total: 249843.44, status: "ASGARİ ÖDENDİ", paid: 99938.00, cardLimit: 978100, extraLimit: 0, remainLimit: 707505, grandDebt: 0 },
+      { id: 4, day: 7, bank: "İŞ BANK ŞİRKET KK", category: "Şirket", color: "#f59e0b", note: "30.GÜN", min: 39220.88, total: 196104.41, status: "ASGARİ ÖDENDİ", paid: 39220.88, cardLimit: 250000, extraLimit: 0, remainLimit: 81000, grandDebt: 0 },
+      { id: 5, day: 7, bank: "İŞ BANK MOS KK", category: "Şirket", color: "#f59e0b", note: "27. GÜN", min: 22386.12, total: 55965.31, status: "ASGARİ ÖDENDİ", paid: 22386.12, cardLimit: 121400, extraLimit: 0, remainLimit: 51000, grandDebt: 0 },
+      { id: 6, day: 11, bank: "DENİZBANK KK", category: "Şahsi", color: "#8b5cf6", note: "31. GÜN", min: 0, total: 0, status: "BORÇ YOK", paid: 0, cardLimit: 30000, extraLimit: 70000, remainLimit: 30000, grandDebt: 0 },
+      { id: 7, day: 8, bank: "VAKIF ŞİRKET KK", category: "Şirket", color: "#f59e0b", note: "3. GÜN", min: 0, total: 0, status: "BORÇ YOK", paid: 0, cardLimit: 75000, extraLimit: 10000, remainLimit: 71000, grandDebt: 0 },
+      { id: 8, day: 12, bank: "VAKIFBANK KREDİSİ", category: "Kredi", color: "#3b82f6", note: "49/18. TAKSİT", min: 19348.56, total: 19348.56, status: "BEKLİYOR", paid: 0, cardLimit: 0, extraLimit: 0, remainLimit: 0, grandDebt: 890033.09 },
+      { id: 9, day: 14, bank: "QNB ŞİRKET KK", category: "Şirket", color: "#f59e0b", note: "9. GÜN", min: 0, total: 0, status: "BEKLİYOR", paid: 0, cardLimit: 719200, extraLimit: 50000, remainLimit: 117000, grandDebt: 0 },
+      { id: 10, day: 18, bank: "KUVEYT ŞİRKET KK", category: "Şirket", color: "#f59e0b", note: "8. GÜN", min: 0, total: 0, status: "BEKLİYOR", paid: 0, cardLimit: 5000, extraLimit: 0, remainLimit: 4000, grandDebt: 0 },
+      { id: 11, day: 20, bank: "TALAT KREDİ", category: "Kredi", color: "#3b82f6", note: "20.GÜN", min: 3862.00, total: 3862.00, status: "BEKLİYOR", paid: 0, cardLimit: 0, extraLimit: 0, remainLimit: 0, grandDebt: 0 },
+      { id: 12, day: 20, bank: "MAĞAZA KİRA", category: "Sabit", color: "#06b6d4", note: "20.GÜN", min: 28000.00, total: 28000.00, status: "BEKLİYOR", paid: 0, cardLimit: 0, extraLimit: 0, remainLimit: 0, grandDebt: 0 },
+      { id: 13, day: 24, bank: "ZİRAAT ŞİRKET KK", category: "Şirket", color: "#f59e0b", note: "13. GÜN", min: 0, total: 0, status: "BEKLİYOR", paid: 0, cardLimit: 220000, extraLimit: 0, remainLimit: 0, grandDebt: 0 },
+      { id: 14, day: 25, bank: "QNB MOS KK", category: "Şirket", color: "#f59e0b", note: "15. GÜN", min: 0, total: 0, status: "BEKLİYOR", paid: 0, cardLimit: 780500, extraLimit: 0, remainLimit: 686073, grandDebt: 0 },
+      { id: 15, day: 28, bank: "VERGİLER", category: "Sabit", color: "#06b6d4", note: "26. GÜN", min: 2000.00, total: 2000.00, status: "BEKLİYOR", paid: 0, cardLimit: 0, extraLimit: 0, remainLimit: 0, grandDebt: 0 },
+      { id: 16, day: 30, bank: "EV/DÜKKAN AİDAT", category: "Sabit", color: "#06b6d4", note: "30. GÜN", min: 3000.00, total: 3000.00, status: "BEKLİYOR", paid: 0, cardLimit: 0, extraLimit: 0, remainLimit: 0, grandDebt: 0 }
     ];
 
-    let myDebts = JSON.parse(localStorage.getItem('my_custom_excel_data_v2')) || initialExcelData;
+    let myDebts = JSON.parse(localStorage.getItem('my_custom_excel_data_v3')) || initialExcelData;
     let currentTab = 'monthly';
     let currentFilter = 'all';
+    let currentTypeFilter = null;
 
     function fmt(val) {
       return '₺' + Number(val || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
     function render() {
-      // Hesaplamalar (Excel ile birebir uyumlu)
+      // Hesaplamalar
       let totalDebt = 0;
       let totalPaid = 0;
       let remainingAsgari = 0;
@@ -443,7 +489,6 @@
         totalRemainLimit += Number(d.remainLimit || 0);
         grandLoanTotal += Number(d.grandDebt || 0);
 
-        // Excel Kalan Asgari Mantığı: Yalnızca henüz BEKLİYOR olanların asgarisini toplar
         if (d.status === 'BEKLİYOR') {
           remainingAsgari += Number(d.min || 0);
         }
@@ -472,7 +517,7 @@
       let list = [...myDebts].sort((a,b) => a.day - b.day);
 
       // Zaman Görünüm Filtresi
-      const today = 8; // Eylül 8 baz
+      const today = 8;
       if (currentTab === 'daily') {
         list = list.filter(item => item.day >= today && item.day <= today + 3);
       } else if (currentTab === 'weekly') {
@@ -486,6 +531,11 @@
         list = list.filter(i => i.status !== 'BEKLİYOR');
       }
 
+      // Tür / Kategori Filtresi (Şirket, Şahsi, Kredi)
+      if (currentTypeFilter) {
+        list = list.filter(i => (i.category || '').includes(currentTypeFilter));
+      }
+
       if(list.length === 0) {
         listEl.innerHTML = `<div style="text-align:center; padding:32px 10px; color:var(--muted); font-size:13px;">Bu filtreye uygun ödeme bulunamadı.</div>`;
         return;
@@ -493,21 +543,32 @@
 
       list.forEach(item => {
         const card = document.createElement('div');
-        let statusClass = 'status-bekliyor';
-        let badgeClass = 'b-bekliyor';
+        const cardColor = item.color || '#f59e0b';
+        const isDone = item.status.includes('ÖDENDİ') || item.status === 'BORÇ YOK';
 
-        if (item.status === 'ASGARİ ÖDENDİ') { statusClass = 'status-asgari'; badgeClass = 'b-asgari'; }
-        else if (item.status === 'TAMAMI ÖDENDİ') { statusClass = 'status-tamam'; badgeClass = 'b-tamam'; }
-        else if (item.status === 'BORÇ YOK') { statusClass = 'status-yok'; badgeClass = 'b-yok'; }
+        let badgeClass = 'b-bekliyor';
+        if (item.status === 'ASGARİ ÖDENDİ') badgeClass = 'b-asgari';
+        else if (item.status === 'TAMAMI ÖDENDİ') badgeClass = 'b-tamam';
+        else if (item.status === 'BORÇ YOK') badgeClass = 'b-yok';
 
         const cardKalan = item.total - item.paid;
 
-        card.className = `debt-card ${statusClass}`;
+        card.className = `debt-card ${isDone ? 'is-paid-done' : ''}`;
+        // Kullanıcının belirlediği özel renk kenarlığı ve arka plan ışıması
+        card.style.borderLeft = `5px solid ${cardColor}`;
+        card.style.background = `linear-gradient(135deg, ${cardColor}0d, var(--card-bg) 60%)`;
+
         card.innerHTML = `
           <div class="card-top">
             <div>
-              <div class="bank-title">${item.bank}</div>
+              <div class="bank-title-box">
+                <span class="color-dot" style="background:${cardColor};"></span>
+                <span class="bank-title">${item.bank}</span>
+              </div>
               <div class="card-sub-info">
+                <span class="type-badge" style="background:${cardColor}25; color:${cardColor}; border:1px solid ${cardColor}50;">
+                  ${item.category || 'Şirket'}
+                </span>
                 <span class="tag-bubble">Vade: ${item.day}. Gün</span>
                 <span class="tag-bubble">Kesim: ${item.note || '-'}</span>
                 ${item.cardLimit > 0 ? `<span class="tag-bubble">Limit: ${fmt(item.cardLimit)}</span>` : ''}
@@ -536,17 +597,35 @@
           </div>
 
           <div class="card-footer-actions">
-            <span class="tap-hint" onclick="openEditModal(${item.id})">✏️ Düzenle / Değiştir</span>
+            <span class="tap-hint" onclick="openEditModal(${item.id})">✏️ Düzenle / Renk Değiştir</span>
             <button class="quick-status-btn" onclick="cycleStatus(${item.id})">Durum Değiştir</button>
           </div>
         `;
         listEl.appendChild(card);
       });
 
-      localStorage.setItem('my_custom_excel_data_v2', JSON.stringify(myDebts));
+      localStorage.setItem('my_custom_excel_data_v3', JSON.stringify(myDebts));
     }
 
-    // Durumu tek tıkla döngüye sokma
+    // Renk Seçme & Kategoriye Göre Otomatik Öneri
+    function selectColor(hex, el) {
+      document.querySelectorAll('.color-option').forEach(c => c.classList.remove('selected'));
+      if(el) el.classList.add('selected');
+      document.getElementById('mColor').value = hex;
+    }
+
+    function autoSuggestColor(cat) {
+      let suggested = "#f59e0b";
+      if(cat === 'Şahsi') suggested = "#8b5cf6";
+      else if(cat === 'Kredi') suggested = "#3b82f6";
+      else if(cat === 'Sabit') suggested = "#06b6d4";
+      else if(cat === 'Şirket') suggested = "#f59e0b";
+
+      const opt = document.querySelector(`.color-option[data-color="${suggested}"]`);
+      selectColor(suggested, opt);
+    }
+
+    // Durumu döngüye sokma
     function cycleStatus(id) {
       myDebts = myDebts.map(item => {
         if(item.id === id) {
@@ -581,6 +660,7 @@
       document.getElementById('btnDelete').style.display = 'block';
 
       document.getElementById('mBank').value = item.bank;
+      document.getElementById('mCategory').value = item.category || 'Şirket';
       document.getElementById('mDay').value = item.day;
       document.getElementById('mNote').value = item.note || '';
       document.getElementById('mTotal').value = item.total;
@@ -592,6 +672,10 @@
       document.getElementById('mExtraLimit').value = item.extraLimit || 0;
       document.getElementById('mGrandDebt').value = item.grandDebt || 0;
 
+      const itemColor = item.color || '#f59e0b';
+      const colorOpt = document.querySelector(`.color-option[data-color="${itemColor}"]`);
+      selectColor(itemColor, colorOpt);
+
       document.getElementById('debtModal').style.display = 'flex';
     }
 
@@ -602,6 +686,7 @@
       document.getElementById('btnDelete').style.display = 'none';
 
       document.getElementById('mBank').value = '';
+      document.getElementById('mCategory').value = 'Şirket';
       document.getElementById('mDay').value = '';
       document.getElementById('mNote').value = '';
       document.getElementById('mTotal').value = '';
@@ -612,6 +697,8 @@
       document.getElementById('mRemainLimit').value = '0';
       document.getElementById('mExtraLimit').value = '0';
       document.getElementById('mGrandDebt').value = '0';
+
+      autoSuggestColor('Şirket');
 
       document.getElementById('debtModal').style.display = 'flex';
     }
@@ -634,6 +721,8 @@
         return;
       }
 
+      const category = document.getElementById('mCategory').value;
+      const color = document.getElementById('mColor').value || '#f59e0b';
       const total = parseFloat(document.getElementById('mTotal').value) || 0;
       const min = parseFloat(document.getElementById('mMin').value) || 0;
       const paid = parseFloat(document.getElementById('mPaid').value) || 0;
@@ -645,18 +734,16 @@
       const note = document.getElementById('mNote').value.trim();
 
       if(id) {
-        // Güncelleme
         myDebts = myDebts.map(d => {
           if(d.id == id) {
-            return { ...d, bank, day, note, total, min, paid, status, cardLimit, remainLimit, extraLimit, grandDebt };
+            return { ...d, bank, category, color, day, note, total, min, paid, status, cardLimit, remainLimit, extraLimit, grandDebt };
           }
           return d;
         });
       } else {
-        // Yeni Kalem Ekleme
         myDebts.push({
           id: Date.now(),
-          bank, day, note, total, min, paid, status, cardLimit, remainLimit, extraLimit, grandDebt
+          bank, category, color, day, note, total, min, paid, status, cardLimit, remainLimit, extraLimit, grandDebt
         });
       }
 
@@ -675,9 +762,9 @@
     }
 
     function resetToExcel() {
-      if(confirm("Tüm veriler orijinal Excel Eylül 2026 tablosuna sıfırlansın mı?")) {
+      if(confirm("Tüm veriler ve renkler orijinal Excel tablosuna sıfırlansın mı?")) {
         myDebts = JSON.parse(JSON.stringify(initialExcelData));
-        localStorage.removeItem('my_custom_excel_data_v2');
+        localStorage.removeItem('my_custom_excel_data_v3');
         render();
       }
     }
@@ -701,6 +788,14 @@
 
     function applyFilter(f, el) {
       currentFilter = f;
+      currentTypeFilter = null;
+      document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+      el.classList.add('active');
+      render();
+    }
+
+    function applyTypeFilter(type, el) {
+      currentTypeFilter = type;
       document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
       el.classList.add('active');
       render();
@@ -754,7 +849,7 @@
           const d = String(p.day).padStart(2, '0');
           ics += `BEGIN:VEVENT\n`;
           ics += `SUMMARY:Ödeme: ${p.bank} (${fmt(p.min > 0 ? p.min : p.total)})\n`;
-          ics += `DESCRIPTION:Toplam Borç: ${fmt(p.total)}\\nAsgari: ${fmt(p.min)}\\nNot: ${p.note}\n`;
+          ics += `DESCRIPTION:Toplam Borç: ${fmt(p.total)}\\nAsgari: ${fmt(p.min)}\\nTür: ${p.category || 'Gider'}\\nNot: ${p.note}\n`;
           ics += `DTSTART;TZID=Europe/Istanbul:${yr}${mo}${d}T090000\n`;
           ics += `DTEND;TZID=Europe/Istanbul:${yr}${mo}${d}T100000\n`;
           ics += `BEGIN:VALARM\nACTION:DISPLAY\nDESCRIPTION:2 Gün Kaldı: ${p.bank}\nTRIGGER:-P2D\nEND:VALARM\n`;
@@ -778,7 +873,6 @@
       document.body.removeChild(link);
     }
 
-    // Başlangıç
     render();
   </script>
 </body>
