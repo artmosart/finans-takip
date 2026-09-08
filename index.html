@@ -35,13 +35,19 @@
     .brand { font-size: 17px; font-weight: 800; letter-spacing: -0.3px; }
     .brand span { color: var(--accent); }
     .top-actions { display: flex; gap: 8px; align-items: center; }
-    .btn-month {
-      background: var(--card-subtle); border: 1px solid var(--border); color: #fff;
-      padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700;
+    .month-nav-box {
+      display: flex; align-items: center; gap: 4px;
+      background: var(--card-subtle); border: 1px solid var(--border);
+      border-radius: 8px; padding: 2px 6px;
     }
+    .month-nav-btn {
+      background: none; border: none; color: var(--muted); font-size: 14px;
+      font-weight: 800; padding: 4px 6px; cursor: pointer;
+    }
+    .cur-month-text { font-size: 12px; font-weight: 700; color: #fff; min-width: 78px; text-align: center; }
     .btn-reset {
       background: none; border: 1px solid #374151; color: var(--muted);
-      padding: 6px 10px; border-radius: 8px; font-size: 11px; cursor: pointer;
+      padding: 6px 9px; border-radius: 8px; font-size: 11px; cursor: pointer;
     }
 
     /* Zaman Görünüm Sekmeleri */
@@ -51,10 +57,10 @@
     }
     .time-tabs::-webkit-scrollbar { display: none; }
     .time-tab {
-      flex: 1; min-width: 80px; text-align: center;
-      padding: 8px 6px; border-radius: 10px; font-size: 12px; font-weight: 700;
+      flex: 1; min-width: 74px; text-align: center;
+      padding: 8px 4px; border-radius: 10px; font-size: 12px; font-weight: 700;
       background: var(--card-subtle); color: var(--muted); border: 1px solid var(--border);
-      cursor: pointer; transition: all 0.2s;
+      cursor: pointer; transition: all 0.2s; white-space: nowrap;
     }
     .time-tab.active {
       background: var(--accent); color: #fff; border-color: var(--accent);
@@ -113,7 +119,7 @@
       display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; vertical-align: middle;
     }
 
-    /* Kart Öğesi */
+    /* Liste Kart Öğesi */
     .debt-card {
       background: var(--card-bg); border: 1px solid var(--border);
       border-radius: 14px; padding: 14px; margin-bottom: 10px;
@@ -155,6 +161,55 @@
     .quick-status-btn {
       padding: 5px 12px; font-size: 11px; font-weight: 700; border-radius: 6px;
       border: 1px solid var(--border); background: var(--card-subtle); color: #fff; cursor: pointer;
+    }
+
+    /* =========================================
+       AYLIK TAKVİM GÖRÜNÜMÜ STİLLERİ
+       ========================================= */
+    .calendar-view { display: none; }
+    .cal-header-bar {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 12px; padding: 4px 2px;
+    }
+    .cal-title { font-size: 16px; font-weight: 800; color: #fff; }
+    .cal-legend { display: flex; gap: 8px; font-size: 11px; color: var(--muted); }
+    .cal-legend span { display: flex; align-items: center; gap: 4px; }
+    
+    .cal-grid-weekdays {
+      display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center;
+      margin-bottom: 6px;
+    }
+    .cal-weekday { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; padding: 4px 0; }
+
+    .cal-grid-days {
+      display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;
+    }
+    .cal-day-cell {
+      min-height: 72px; background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: 10px; padding: 5px; display: flex; flex-direction: column;
+      position: relative; cursor: pointer; transition: all 0.15s;
+    }
+    .cal-day-cell:active { transform: scale(0.96); }
+    .cal-day-cell.empty { background: transparent; border-color: transparent; cursor: default; }
+    .cal-day-cell.today { border-color: var(--accent); background: rgba(59, 130, 246, 0.08); }
+    .cal-day-cell.has-pending { border-top: 3px solid var(--warning); }
+    .cal-day-cell.has-asgari { border-top: 3px solid var(--danger); }
+    .cal-day-cell.all-paid { border-top: 3px solid var(--success); }
+
+    .cal-day-num { font-size: 12px; font-weight: 800; color: #cbd5e1; margin-bottom: 3px; }
+    .cal-day-cell.today .cal-day-num { color: #60a5fa; }
+
+    .cal-day-events { display: flex; flex-direction: column; gap: 2px; overflow: hidden; flex: 1; }
+    .cal-event-pill {
+      font-size: 9px; font-weight: 700; padding: 1px 4px; border-radius: 4px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.3;
+    }
+
+    /* Gün Detay Çekmecesi */
+    .day-sheet-title { font-size: 16px; font-weight: 800; margin-bottom: 12px; }
+    .day-total-badge {
+      background: var(--card-subtle); padding: 8px 12px; border-radius: 8px;
+      font-size: 13px; font-weight: 700; margin-bottom: 14px; display: flex; justify-content: space-between;
     }
 
     /* Yıllık Ekran */
@@ -232,22 +287,27 @@
   <div class="top-bar">
     <div class="brand">Finans<span>Takip</span></div>
     <div class="top-actions">
-      <button class="btn-month">Eylül 2026</button>
+      <div class="month-nav-box">
+        <button class="month-nav-btn" onclick="navMonth(-1)">&lt;</button>
+        <span class="cur-month-text" id="curMonthLabel">Eylül 2026</span>
+        <button class="month-nav-btn" onclick="navMonth(1)">&gt;</button>
+      </div>
       <button class="btn-reset" onclick="resetToExcel()" title="Excel verilerine sıfırla">Sıfırla</button>
     </div>
   </div>
 
-  <!-- Zaman Görünüm Sekmeleri -->
+  <!-- Zaman Görünüm Sekmeleri (Takvim eklendi) -->
   <div class="time-tabs">
-    <div class="time-tab" onclick="changeView('daily', this)">Bugün / 3 Gün</div>
+    <div class="time-tab" onclick="changeView('daily', this)">Bugün / 3G</div>
     <div class="time-tab" onclick="changeView('weekly', this)">Bu Hafta</div>
-    <div class="time-tab active" onclick="changeView('monthly', this)">Bu Ay</div>
-    <div class="time-tab" onclick="changeView('annual', this)">Yıl Sonu Özeti</div>
+    <div class="time-tab active" onclick="changeView('monthly', this)">Bu Ay (Liste)</div>
+    <div class="time-tab" onclick="changeView('calendar', this)">📅 Takvim</div>
+    <div class="time-tab" onclick="changeView('annual', this)">Yıl Sonu</div>
   </div>
 
   <div class="container">
     
-    <!-- Aylık Dashboard -->
+    <!-- Aylık Liste Dashboard -->
     <div id="monthViewWrapper">
       <!-- Ana Dashboard Kartı -->
       <div class="kpi-main">
@@ -292,7 +352,7 @@
         </div>
       </div>
 
-      <!-- Filtreler: Durum ve Tür/Kategori Filtreleme -->
+      <!-- Filtreler -->
       <div class="filter-bar">
         <div class="pills">
           <div class="pill active" onclick="applyFilter('all', this)">Tümü</div>
@@ -303,12 +363,39 @@
           <div class="pill" onclick="applyTypeFilter('Kredi', this)">🏦 Kredi</div>
         </div>
         <button class="btn-cal-sync" onclick="exportCalendar()">
-          🔔 Alarma / Takvime Aktar
+          🔔 Alarma Aktar
         </button>
       </div>
 
       <!-- Ödeme Listesi -->
       <div id="debtList"></div>
+    </div>
+
+    <!-- =========================================
+         AYLIK TAKVİM EKRANI
+         ========================================= -->
+    <div class="calendar-view" id="calendarWrapper">
+      <div class="cal-header-bar">
+        <div class="cal-title" id="calMonthDisplay">Eylül 2026 Ödeme Takvimi</div>
+        <div class="cal-legend">
+          <span><span class="color-dot" style="background:var(--warning);"></span>Bekliyor</span>
+          <span><span class="color-dot" style="background:var(--success);"></span>Ödendi</span>
+        </div>
+      </div>
+
+      <!-- Haftanın Günleri -->
+      <div class="cal-grid-weekdays">
+        <div class="cal-weekday">Pzt</div>
+        <div class="cal-weekday">Sal</div>
+        <div class="cal-weekday">Çar</div>
+        <div class="cal-weekday">Per</div>
+        <div class="cal-weekday">Cum</div>
+        <div class="cal-weekday">Cmt</div>
+        <div class="cal-weekday">Paz</div>
+      </div>
+
+      <!-- Günler Izgarası (Dinamik 1-30 / 1-31) -->
+      <div class="cal-grid-days" id="calDaysGrid"></div>
     </div>
 
     <!-- Yıllık Görünüm -->
@@ -332,6 +419,21 @@
   <div class="bottom-nav">
     <button class="btn-add-debt" onclick="openAddModal()">+ Yeni Gider / Borç Kalemi Ekle</button>
     <button class="btn-alarm-all" onclick="exportCalendar()">📅 Alarm Kur</button>
+  </div>
+
+  <!-- Gün Detayı Modalı (Takvimde güne basıldığında açılır) -->
+  <div class="modal-overlay" id="dayDetailModal" onclick="handleDayModalClick(event)">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <div class="day-sheet-title" id="dayModalTitle">Ödeme Detayları</div>
+        <div class="close-btn" onclick="closeDayModal()">&times;</div>
+      </div>
+      <div class="day-total-badge" id="dayTotalBadge">
+        <span>Günün Toplamı</span>
+        <span id="dayModalTotalAmount">₺0</span>
+      </div>
+      <div id="dayModalItemsList"></div>
+    </div>
   </div>
 
   <!-- Düzenleme / Ekleme Modalı -->
@@ -442,7 +544,11 @@
   </div>
 
   <script>
-    // Excel tablonuzdaki satırların tam karşılığı ve renk kodları
+    // Ay İsimleri ve Orijinal Veri Seti
+    const monthNames = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+    let currentYear = 2026;
+    let currentMonthIndex = 8; // 8 = Eylül (0-indexed)
+
     const initialExcelData = [
       { id: 1, day: 1, bank: "AXESS 0282 KK", category: "Şahsi", color: "#8b5cf6", note: "27. GÜN", min: 0, total: 0, status: "BORÇ YOK", paid: 0, cardLimit: 25000, extraLimit: 15000, remainLimit: 25000, grandDebt: 0 },
       { id: 2, day: 31, bank: "HALKBANK ŞİRKET KK", category: "Şirket", color: "#f59e0b", note: "26. GÜN", min: 14411.80, total: 72058.99, status: "ASGARİ ÖDENDİ", paid: 14411.80, cardLimit: 250000, extraLimit: 150000, remainLimit: 17000, grandDebt: 0 },
@@ -462,7 +568,7 @@
       { id: 16, day: 30, bank: "EV/DÜKKAN AİDAT", category: "Sabit", color: "#06b6d4", note: "30. GÜN", min: 3000.00, total: 3000.00, status: "BEKLİYOR", paid: 0, cardLimit: 0, extraLimit: 0, remainLimit: 0, grandDebt: 0 }
     ];
 
-    let myDebts = JSON.parse(localStorage.getItem('my_custom_excel_data_v3')) || initialExcelData;
+    let myDebts = JSON.parse(localStorage.getItem('my_custom_excel_data_v4')) || initialExcelData;
     let currentTab = 'monthly';
     let currentFilter = 'all';
     let currentTypeFilter = null;
@@ -471,15 +577,23 @@
       return '₺' + Number(val || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
+    function navMonth(direction) {
+      currentMonthIndex += direction;
+      if(currentMonthIndex < 0) {
+        currentMonthIndex = 11;
+        currentYear--;
+      } else if(currentMonthIndex > 11) {
+        currentMonthIndex = 0;
+        currentYear++;
+      }
+      document.getElementById('curMonthLabel').innerText = `${monthNames[currentMonthIndex]} ${currentYear}`;
+      document.getElementById('calMonthDisplay').innerText = `${monthNames[currentMonthIndex]} ${currentYear} Ödeme Takvimi`;
+      render();
+    }
+
     function render() {
-      // Hesaplamalar
-      let totalDebt = 0;
-      let totalPaid = 0;
-      let remainingAsgari = 0;
-      let totalCardLimit = 0;
-      let totalExtra = 0;
-      let totalRemainLimit = 0;
-      let grandLoanTotal = 0;
+      // 1. KPI Hesaplamaları
+      let totalDebt = 0, totalPaid = 0, remainingAsgari = 0, totalCardLimit = 0, totalExtra = 0, totalRemainLimit = 0, grandLoanTotal = 0;
 
       myDebts.forEach(d => {
         totalDebt += Number(d.total || 0);
@@ -510,13 +624,12 @@
       document.getElementById('limitProgress').style.width = (100 - freePercent) + '%';
       document.getElementById('limitFreeText').innerText = `${fmt(totalRemainLimit)} (%${freePercent} Boşta)`;
 
-      // Kart Listesi Çizimi
+      // 2. Liste Görünümü Çizimi
       const listEl = document.getElementById('debtList');
       listEl.innerHTML = '';
 
       let list = [...myDebts].sort((a,b) => a.day - b.day);
 
-      // Zaman Görünüm Filtresi
       const today = 8;
       if (currentTab === 'daily') {
         list = list.filter(item => item.day >= today && item.day <= today + 3);
@@ -524,90 +637,216 @@
         list = list.filter(item => item.day >= today && item.day <= today + 7);
       }
 
-      // Durum Filtresi
-      if (currentFilter === 'bekliyor') {
-        list = list.filter(i => i.status === 'BEKLİYOR');
-      } else if (currentFilter === 'odendi') {
-        list = list.filter(i => i.status !== 'BEKLİYOR');
-      }
+      if (currentFilter === 'bekliyor') list = list.filter(i => i.status === 'BEKLİYOR');
+      else if (currentFilter === 'odendi') list = list.filter(i => i.status !== 'BEKLİYOR');
 
-      // Tür / Kategori Filtresi (Şirket, Şahsi, Kredi)
-      if (currentTypeFilter) {
-        list = list.filter(i => (i.category || '').includes(currentTypeFilter));
-      }
+      if (currentTypeFilter) list = list.filter(i => (i.category || '').includes(currentTypeFilter));
 
       if(list.length === 0) {
         listEl.innerHTML = `<div style="text-align:center; padding:32px 10px; color:var(--muted); font-size:13px;">Bu filtreye uygun ödeme bulunamadı.</div>`;
-        return;
+      } else {
+        list.forEach(item => {
+          const card = document.createElement('div');
+          const cardColor = item.color || '#f59e0b';
+          const isDone = item.status.includes('ÖDENDİ') || item.status === 'BORÇ YOK';
+
+          let badgeClass = 'b-bekliyor';
+          if (item.status === 'ASGARİ ÖDENDİ') badgeClass = 'b-asgari';
+          else if (item.status === 'TAMAMI ÖDENDİ') badgeClass = 'b-tamam';
+          else if (item.status === 'BORÇ YOK') badgeClass = 'b-yok';
+
+          const cardKalan = item.total - item.paid;
+          card.className = `debt-card ${isDone ? 'is-paid-done' : ''}`;
+          card.style.borderLeft = `5px solid ${cardColor}`;
+          card.style.background = `linear-gradient(135deg, ${cardColor}0d, var(--card-bg) 60%)`;
+
+          card.innerHTML = `
+            <div class="card-top">
+              <div>
+                <div class="bank-title-box">
+                  <span class="color-dot" style="background:${cardColor};"></span>
+                  <span class="bank-title">${item.bank}</span>
+                </div>
+                <div class="card-sub-info">
+                  <span class="type-badge" style="background:${cardColor}25; color:${cardColor}; border:1px solid ${cardColor}50;">
+                    ${item.category || 'Şirket'}
+                  </span>
+                  <span class="tag-bubble">Vade: ${item.day}. Gün</span>
+                  <span class="tag-bubble">Kesim: ${item.note || '-'}</span>
+                  ${item.cardLimit > 0 ? `<span class="tag-bubble">Limit: ${fmt(item.cardLimit)}</span>` : ''}
+                </div>
+              </div>
+              <div class="badge ${badgeClass}">${item.status}</div>
+            </div>
+
+            <div class="card-money-grid">
+              <div class="money-block">
+                <div class="lbl">Ödenecek Toplam</div>
+                <div class="val">${fmt(item.total)}</div>
+              </div>
+              <div class="money-block">
+                <div class="lbl">Asgari Tutar</div>
+                <div class="val" style="color:#fca5a5;">${fmt(item.min)}</div>
+              </div>
+              <div class="money-block">
+                <div class="lbl">Yapılan Ödeme</div>
+                <div class="val" style="color:var(--success);">${fmt(item.paid)}</div>
+              </div>
+              <div class="money-block">
+                <div class="lbl">Kalan Borç</div>
+                <div class="val" style="color:${cardKalan > 0 ? 'var(--danger)' : 'var(--muted)'};">${fmt(cardKalan)}</div>
+              </div>
+            </div>
+
+            <div class="card-footer-actions">
+              <span class="tap-hint" onclick="openEditModal(${item.id})">✏️ Düzenle / Renk Değiştir</span>
+              <button class="quick-status-btn" onclick="cycleStatus(${item.id})">Durum Değiştir</button>
+            </div>
+          `;
+          listEl.appendChild(card);
+        });
       }
 
-      list.forEach(item => {
-        const card = document.createElement('div');
-        const cardColor = item.color || '#f59e0b';
-        const isDone = item.status.includes('ÖDENDİ') || item.status === 'BORÇ YOK';
+      // 3. Takvim Görünümü Çizimi
+      renderCalendar();
 
-        let badgeClass = 'b-bekliyor';
-        if (item.status === 'ASGARİ ÖDENDİ') badgeClass = 'b-asgari';
-        else if (item.status === 'TAMAMI ÖDENDİ') badgeClass = 'b-tamam';
-        else if (item.status === 'BORÇ YOK') badgeClass = 'b-yok';
-
-        const cardKalan = item.total - item.paid;
-
-        card.className = `debt-card ${isDone ? 'is-paid-done' : ''}`;
-        // Kullanıcının belirlediği özel renk kenarlığı ve arka plan ışıması
-        card.style.borderLeft = `5px solid ${cardColor}`;
-        card.style.background = `linear-gradient(135deg, ${cardColor}0d, var(--card-bg) 60%)`;
-
-        card.innerHTML = `
-          <div class="card-top">
-            <div>
-              <div class="bank-title-box">
-                <span class="color-dot" style="background:${cardColor};"></span>
-                <span class="bank-title">${item.bank}</span>
-              </div>
-              <div class="card-sub-info">
-                <span class="type-badge" style="background:${cardColor}25; color:${cardColor}; border:1px solid ${cardColor}50;">
-                  ${item.category || 'Şirket'}
-                </span>
-                <span class="tag-bubble">Vade: ${item.day}. Gün</span>
-                <span class="tag-bubble">Kesim: ${item.note || '-'}</span>
-                ${item.cardLimit > 0 ? `<span class="tag-bubble">Limit: ${fmt(item.cardLimit)}</span>` : ''}
-              </div>
-            </div>
-            <div class="badge ${badgeClass}">${item.status}</div>
-          </div>
-
-          <div class="card-money-grid">
-            <div class="money-block">
-              <div class="lbl">Ödenecek Toplam</div>
-              <div class="val">${fmt(item.total)}</div>
-            </div>
-            <div class="money-block">
-              <div class="lbl">Asgari Tutar</div>
-              <div class="val" style="color:#fca5a5;">${fmt(item.min)}</div>
-            </div>
-            <div class="money-block">
-              <div class="lbl">Yapılan Ödeme</div>
-              <div class="val" style="color:var(--success);">${fmt(item.paid)}</div>
-            </div>
-            <div class="money-block">
-              <div class="lbl">Kalan Borç</div>
-              <div class="val" style="color:${cardKalan > 0 ? 'var(--danger)' : 'var(--muted)'};">${fmt(cardKalan)}</div>
-            </div>
-          </div>
-
-          <div class="card-footer-actions">
-            <span class="tap-hint" onclick="openEditModal(${item.id})">✏️ Düzenle / Renk Değiştir</span>
-            <button class="quick-status-btn" onclick="cycleStatus(${item.id})">Durum Değiştir</button>
-          </div>
-        `;
-        listEl.appendChild(card);
-      });
-
-      localStorage.setItem('my_custom_excel_data_v3', JSON.stringify(myDebts));
+      localStorage.setItem('my_custom_excel_data_v4', JSON.stringify(myDebts));
     }
 
-    // Renk Seçme & Kategoriye Göre Otomatik Öneri
+    // =========================================
+    // DİNAMİK AYLIK TAKVİM MOTORU
+    // =========================================
+    function renderCalendar() {
+      const grid = document.getElementById('calDaysGrid');
+      grid.innerHTML = '';
+
+      // Ayın toplam gün sayısı (28, 29, 30 veya 31)
+      const daysInMonth = new Date(currentYear, currentMonthIndex + 1, 0).getDate();
+
+      // Ayın ilk gününün haftanın hangi gününe denk geldiği (0=Paz, 1=Pzt...)
+      let firstDayIndex = new Date(currentYear, currentMonthIndex, 1).getDay();
+      // Pazartesi'yi 0 yapalım: Pzt=0, Sal=1 ... Paz=6
+      firstDayIndex = (firstDayIndex === 0) ? 6 : firstDayIndex - 1;
+
+      // Önceki aydan boş hücreler
+      for (let i = 0; i < firstDayIndex; i++) {
+        const emptyCell = document.createElement('div');
+        emptyCell.className = 'cal-day-cell empty';
+        grid.appendChild(emptyCell);
+      }
+
+      // Günleri oluştur
+      for (let d = 1; d <= daysInMonth; d++) {
+        const cell = document.createElement('div');
+        cell.className = 'cal-day-cell';
+        cell.onclick = () => openDayDetail(d);
+
+        // O günün ödemelerini bul
+        const dayItems = myDebts.filter(item => item.day === d);
+
+        // Durum göstergesi
+        let hasPending = false;
+        let hasAsgari = false;
+        let allPaid = dayItems.length > 0;
+
+        dayItems.forEach(it => {
+          if (it.status === 'BEKLİYOR') hasPending = true;
+          if (it.status === 'ASGARİ ÖDENDİ') hasAsgari = true;
+          if (it.status !== 'TAMAMI ÖDENDİ' && it.status !== 'BORÇ YOK') allPaid = false;
+        });
+
+        if (hasPending) cell.classList.add('has-pending');
+        else if (hasAsgari) cell.classList.add('has-asgari');
+        else if (allPaid) cell.classList.add('all-paid');
+
+        // Bugün kontrolü (Eylül 2026 için 8'i)
+        if (currentMonthIndex === 8 && currentYear === 2026 && d === 8) {
+          cell.classList.add('today');
+        }
+
+        let eventsHtml = '';
+        dayItems.slice(0, 2).forEach(it => {
+          const itColor = it.color || '#f59e0b';
+          const bgOpacity = it.status === 'BEKLİYOR' ? '30' : '15';
+          eventsHtml += `
+            <div class="cal-event-pill" style="background:${itColor}${bgOpacity}; color:#fff; border-left:2px solid ${itColor};">
+              ${it.bank.split(' ')[0]} ${it.total > 0 ? (it.total >= 1000 ? Math.round(it.total/1000) + 'k' : it.total) : '0'}
+            </div>
+          `;
+        });
+
+        if (dayItems.length > 2) {
+          eventsHtml += `<div style="font-size:8px; color:var(--muted); font-weight:700;">+${dayItems.length - 2} kalem</div>`;
+        }
+
+        cell.innerHTML = `
+          <div class="cal-day-num">${d}</div>
+          <div class="cal-day-events">${eventsHtml}</div>
+        `;
+
+        grid.appendChild(cell);
+      }
+    }
+
+    // Günlük Detay Modalı (Takvim kutusuna basıldığında açılır)
+    function openDayDetail(day) {
+      const items = myDebts.filter(item => item.day === day);
+      const modal = document.getElementById('dayDetailModal');
+      const title = document.getElementById('dayModalTitle');
+      const listEl = document.getElementById('dayModalItemsList');
+      const totalAmountEl = document.getElementById('dayModalTotalAmount');
+
+      title.innerText = `${day} ${monthNames[currentMonthIndex]} ${currentYear} Ödemeleri`;
+      listEl.innerHTML = '';
+
+      if (items.length === 0) {
+        totalAmountEl.innerText = '₺0';
+        listEl.innerHTML = `<div style="text-align:center; padding:24px; color:var(--muted); font-size:13px;">Bu tarihte planlanmış bir ödeme bulunmuyor.</div>`;
+      } else {
+        let dayTotal = 0;
+        items.forEach(it => {
+          dayTotal += it.total;
+          const row = document.createElement('div');
+          const itColor = it.color || '#f59e0b';
+          row.style.cssText = `background:var(--card-subtle); border-left:4px solid ${itColor}; border-radius:10px; padding:12px; margin-bottom:8px;`;
+
+          row.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+              <div>
+                <div style="font-size:14px; font-weight:800; color:#fff;">${it.bank}</div>
+                <div style="font-size:11px; color:var(--muted); margin-top:2px;">
+                  <span>${it.category || 'Gider'}</span> | <span>Kesim: ${it.note || '-'}</span>
+                </div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:15px; font-weight:800; color:#fff;">${fmt(it.total)}</div>
+                <div style="font-size:10px; font-weight:700; color:${it.status === 'BEKLİYOR' ? 'var(--warning)' : 'var(--success)'};">${it.status}</div>
+              </div>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px; padding-top:6px; border-top:1px solid rgba(255,255,255,0.06);">
+              <button onclick="closeDayModal(); openEditModal(${it.id})" style="background:none; border:none; color:var(--accent); font-size:11px; font-weight:700; cursor:pointer;">✏️ Düzenle</button>
+              <button onclick="cycleStatus(${it.id}); openDayDetail(${day})" style="background:#26354f; color:#93c5fd; border:1px solid #3b82f6; border-radius:6px; padding:3px 8px; font-size:11px; font-weight:700; cursor:pointer;">Durum Değiştir</button>
+            </div>
+          `;
+          listEl.appendChild(row);
+        });
+        totalAmountEl.innerText = fmt(dayTotal);
+      }
+
+      modal.style.display = 'flex';
+    }
+
+    function closeDayModal() {
+      document.getElementById('dayDetailModal').style.display = 'none';
+    }
+
+    function handleDayModalClick(e) {
+      if(e.target.id === 'dayDetailModal') closeDayModal();
+    }
+
+    // =========================================
+    // RENK, DÜZENLEME VE DURUM FONKSİYONLARI
+    // =========================================
     function selectColor(hex, el) {
       document.querySelectorAll('.color-option').forEach(c => c.classList.remove('selected'));
       if(el) el.classList.add('selected');
@@ -625,7 +864,6 @@
       selectColor(suggested, opt);
     }
 
-    // Durumu döngüye sokma
     function cycleStatus(id) {
       myDebts = myDebts.map(item => {
         if(item.id === id) {
@@ -650,7 +888,6 @@
       render();
     }
 
-    // Düzenleme Modalı Açılışı
     function openEditModal(id) {
       const item = myDebts.find(d => d.id === id);
       if(!item) return;
@@ -679,7 +916,6 @@
       document.getElementById('debtModal').style.display = 'flex';
     }
 
-    // Yeni Ekleme Modalı Açılışı
     function openAddModal() {
       document.getElementById('editId').value = '';
       document.getElementById('modalTitleText').innerText = "Yeni Kalem Ekle";
@@ -764,24 +1000,33 @@
     function resetToExcel() {
       if(confirm("Tüm veriler ve renkler orijinal Excel tablosuna sıfırlansın mı?")) {
         myDebts = JSON.parse(JSON.stringify(initialExcelData));
-        localStorage.removeItem('my_custom_excel_data_v3');
+        localStorage.removeItem('my_custom_excel_data_v4');
         render();
       }
     }
 
-    // Zaman Sekmeleri
+    // Görünüm Değiştirici
     function changeView(view, el) {
       currentTab = view;
       document.querySelectorAll('.time-tab').forEach(t => t.classList.remove('active'));
       el.classList.add('active');
 
-      if(view === 'annual') {
-        document.getElementById('monthViewWrapper').style.display = 'none';
-        document.getElementById('annualWrapper').style.display = 'block';
+      const monthWrap = document.getElementById('monthViewWrapper');
+      const calWrap = document.getElementById('calendarWrapper');
+      const annualWrap = document.getElementById('annualWrapper');
+
+      monthWrap.style.display = 'none';
+      calWrap.style.display = 'none';
+      annualWrap.style.display = 'none';
+
+      if (view === 'calendar') {
+        calWrap.style.display = 'block';
+        renderCalendar();
+      } else if (view === 'annual') {
+        annualWrap.style.display = 'block';
         renderAnnual();
       } else {
-        document.getElementById('monthViewWrapper').style.display = 'block';
-        document.getElementById('annualWrapper').style.display = 'none';
+        monthWrap.style.display = 'block';
         render();
       }
     }
@@ -836,11 +1081,10 @@
       });
     }
 
-    // Telefon Takvim & Alarm Entegrasyonu
     function exportCalendar() {
       let ics = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Ozel Finans Takip//TR\nCALSCALE:GREGORIAN\n";
-      const yr = 2026;
-      const mo = "09";
+      const yr = currentYear;
+      const mo = String(currentMonthIndex + 1).padStart(2, '0');
 
       let count = 0;
       myDebts.forEach(p => {
@@ -867,7 +1111,7 @@
       const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8;' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.setAttribute('download', 'Odemelerim_Eylul2026.ics');
+      link.setAttribute('download', `Odemelerim_${monthNames[currentMonthIndex]}${currentYear}.ics`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
