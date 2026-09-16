@@ -637,11 +637,24 @@
       let totalDebt = 0, totalPaid = 0, remainingAsgari = 0, totalCardLimit = 0, totalExtra = 0, totalRemainLimit = 0, grandLoanTotal = 0;
 
       myDebts.forEach(d => {
-        totalDebt += Number(d.total || 0);
-        totalPaid += Number(d.paid || 0);
-        totalCardLimit += Number(d.cardLimit || 0);
-        totalExtra += Number(d.extraLimit || 0);
-        totalRemainLimit += Number(d.remainLimit || 0);
+        const itemTotal = Number(d.total || 0);
+        const itemPaid = Number(d.paid || 0);
+        const remainingDebt = Math.max(0, itemTotal - itemPaid);
+        const cardLimit = Number(d.cardLimit || 0);
+        const extraLimit = Number(d.extraLimit || 0);
+        const totalCardCapacity = cardLimit + extraLimit;
+
+        // Dinamik Kalan Limit: Toplam Limitten ödenmeyen güncel borç düşülür
+        let dynamicAvailableLimit = 0;
+        if (totalCardCapacity > 0) {
+          dynamicAvailableLimit = Math.max(0, totalCardCapacity - remainingDebt);
+        }
+
+        totalDebt += itemTotal;
+        totalPaid += itemPaid;
+        totalCardLimit += cardLimit;
+        totalExtra += extraLimit;
+        totalRemainLimit += dynamicAvailableLimit;
         grandLoanTotal += Number(d.grandDebt || 0);
 
         if (d.status === 'BEKLİYOR') {
@@ -710,7 +723,7 @@
                   </span>
                   <span class="tag-bubble">Vade: ${item.day}. Gün</span>
                   <span class="tag-bubble">Kesim: ${item.note || '-'}</span>
-                  ${item.cardLimit > 0 ? `<span class="tag-bubble">Limit: ${fmt(item.cardLimit)}</span>` : ''}
+                  ${item.cardLimit > 0 ? `<span class="tag-bubble">Top. Limit: ${fmt(item.cardLimit + (item.extraLimit || 0))}</span><span class="tag-bubble" style="color:var(--success); font-weight:800; border-color:var(--success);">Kalan Limit: ${fmt(Math.max(0, (item.cardLimit + (item.extraLimit || 0)) - Math.max(0, item.total - item.paid)))}</span>` : ''}
                 </div>
               </div>
               <div class="badge ${badgeClass}">${item.status}</div>
